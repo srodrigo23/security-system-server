@@ -1,0 +1,6 @@
+autopep8==1.5.7
+numpy==1.21.2
+opencv-python-headless==4.2.0.34
+pycodestyle==2.7.0
+PyYAML==5.4.1
+toml==0.10.2

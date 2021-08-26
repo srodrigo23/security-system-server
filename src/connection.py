@@ -1,6 +1,7 @@
 import struct
 import logging
 import cv2
+import pickle
 
 from threading import Thread
 
@@ -17,9 +18,10 @@ class Connection(Thread):
         
     def run(self):
         while True:
-            frame = read_frame()
-            cv2.imshow('server',frame)
-            cv2.waitKey(1)
+            frame = self.read_frame()
+            
+            # cv2.imshow('server',frame)
+            # cv2.waitKey(1)
     
     def get_message_size(self):
         while len(self.data) < self.payload_size:
@@ -30,6 +32,7 @@ class Connection(Thread):
 
     def read_frame(self):
         msg_size = self.get_message_size()
+        print(msg_size)
         while len(self.data) < msg_size:
             self.data += self.client.recv(4096)
         frame_data = self.data[:msg_size]
