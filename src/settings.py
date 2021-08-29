@@ -8,7 +8,7 @@ except ImportError:
 class Settings():
     
     def __init__(self):
-        self.path_file = '../config.yaml'
+        self.path_file = 'config.yaml'
         self.read_file()
     
     def read_file(self):
@@ -19,11 +19,11 @@ class Settings():
         return self.data['port']
 
     def get_host_address(self):
-        return self.data['host']
+        return self.data['host_address']
     
     def get_num_clients(self):
-        return self.data['clients']
-        
+        return self.data['num_clients']
+    
     # def set_source(self, src):
     #     self.data['src'] = src
     #     with open(self.path_file, 'w') as edit:
