@@ -15,14 +15,20 @@ class Settings():
         with open(self.path_file, 'r') as content:
             self.data = load(content, Loader=Loader)
     
-    def get_port(self):
-        return self.data['port']
+    def get_port_clients(self):
+        return self.data['port_clients']
+    
+    def get_port_nodes(self):
+        return self.data['port_nodes']
 
     def get_host_address(self):
         return self.data['host_address']
     
     def get_num_clients(self):
         return self.data['num_clients']
+    
+    def get_num_nodes(self):
+        return self.data['num_nodes']
     
     # def set_source(self, src):
     #     self.data['src'] = src

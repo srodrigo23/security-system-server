@@ -1,3 +1,5 @@
 host_address: 127.0.0.1
-port: 5555
+port_nodes: 5555
+port_clients: 6666
 num_clients: 5
+num_nodes: 5
