@@ -15,7 +15,6 @@ class Nodes(Thread):
 
     def stop_node_connections(self):
         for node in self.nodes:
-            print_log('i', 'aqui')
             node.do_run = False
             node.join(1)
 
@@ -44,17 +43,17 @@ class Nodes(Thread):
                 conn, addr = self.sckt_node.accept()
             except socket.error as e:
                 print_log('w', f'Error on connect node : {str(e)}')
+                self.nodes_ready = False
             else:
                 self.nodes.append(Connection(conn, addr))
                 self.nodes[len(self.nodes)-1].start()
 
     def close_nodes_connection(self):
-        print_log('i', 'Nodes thread turned off')
-        # if self.nodes_ready:
-        try:
-            self.sckt_node.close()
-        except socket.error as e:
-            print_log('w', f'Error on Close Nodes thread {str(e)}')
-        else:
-            self.nodes_ready = False
-            self.stop_node_connections()
+        if self.nodes_ready:
+            try:
+                self.sckt_node.close()
+            except socket.error as e:
+                print_log('w', f'Error on Close Nodes thread {str(e)}')
+            else:
+                self.stop_node_connections()
+                print_log('i', 'Nodes thread turned off')

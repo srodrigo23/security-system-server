@@ -43,17 +43,17 @@ class Clients(Thread):
                 conn, addr = self.sckt_client.accept()
             except socket.error as e:
                 print_log('w', f'Error on connect client : {str(e)}')
+                self.clients_ready = False
             else:
                 self.clients.append(Connection(conn, addr))
                 self.clients[len(self.nodes)-1].start()
     
-    def close_clients_connection(self):
-        print_log('i', 'Clients thread turned off')
-        # if self.clients_ready:
-        try:
-            self.sckt_client.close()
-        except socket.error as e:
-            print_log(f'Error on Close Clients thread {str(e)}')
-        else:
-            self.clients_ready = False
-            self.stop_client_connections()
+    def close_clients_connection(self):    
+        if self.clients_ready:
+            try:
+                self.sckt_client.close()
+            except socket.error as e:
+                print_log(f'Error on Close Clients thread {str(e)}')
+            else:
+                self.stop_client_connections()
+                print_log('i', 'Clients thread turned off')

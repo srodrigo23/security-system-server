@@ -38,12 +38,14 @@ class Server:
 
     def stop_clients_thread(self):
         print_log('i', 'Stopping all clients comunication...')
-        self.clients_thread.clients_ready = False
+        # self.clients_thread.clients_ready = False
+        self.clients_thread.do_run = False
         self.clients_thread.close_clients_connection()
         self.clients_thread.join(1)
     
     def stop_nodes_thread(self):
         print_log('i', 'Stopping all nodes comunication...')
-        self.nodes_thread.nodes_ready = False
+        # self.nodes_thread.nodes_ready = False
+        self.nodes_thread.do_run = False
         self.nodes_thread.close_nodes_connection()
         self.nodes_thread.join(1)
