@@ -1,9 +1,9 @@
 import struct
-import logging
 import cv2
 import pickle
 
 from threading import Thread
+import loger
 
 class Connection(Thread):
     
@@ -14,12 +14,12 @@ class Connection(Thread):
         self.data = b""        
         self.payload_size = struct.calcsize(">L")
         
-        logging.info(f"payload_size: { self.payload_size }")
+        # logging.info(f"payload_size: { self.payload_size }")
+        self.connection_ready = False
         
     def run(self):
-        while True:
+        while self.connect_ready:
             frame = self.read_frame()
-            
             # cv2.imshow('server',frame)
             # cv2.waitKey(1)
     
