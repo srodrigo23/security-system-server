@@ -6,10 +6,13 @@ class Clients(Thread):
     
     def __init__(self, settings):
         Thread.__init__(self)
+        
         self.settings = settings
+        
         self.sckt_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = self.settings.get_host_address()
         self.port = self.settings.get_port_clients()
+        
         self.clients_ready = False
         self.clients = []
     
@@ -24,7 +27,7 @@ class Clients(Thread):
     def run(self):
         self.init_clients_thread()
         self.listen_clients_connection()
-        self.close_clients_connection()
+        # self.close_clients_connection()
         
     def init_clients_thread(self):
         print_log('i', 'Thread clients ready!')

@@ -8,7 +8,6 @@ from nodes import Nodes
 class Server:
     
     def __init__(self):
-        
         self.settings = Settings()
         self.server_ready = False
             
@@ -22,7 +21,7 @@ class Server:
         self.clients_thread.start()
         self.nodes_thread = Nodes(self.settings)
         self.nodes_thread.start()
-                          
+        
     def run_server(self):
         print_log('i', 'Server running...')
         try:
@@ -32,6 +31,9 @@ class Server:
                 """
         except KeyboardInterrupt: # close all threads
             print_log('e', 'Server interrupted...')
+            self.stop_server()
+            
+    def stop_server(self):
             self.server_ready = False
             self.stop_clients_thread()
             self.stop_nodes_thread()

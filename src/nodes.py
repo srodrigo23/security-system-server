@@ -1,6 +1,7 @@
 import socket
 from loger import print_log
 from threading import Thread
+from connection import Connection
 
 class Nodes(Thread):
     
@@ -24,7 +25,7 @@ class Nodes(Thread):
     def run(self):
         self.init_nodes_thread()
         self.listen_nodes_connection()
-        self.close_nodes_connection()
+        # self.close_nodes_connection()
 
     def init_nodes_thread(self):
         print_log('i', "Thread nodes ready!")
@@ -45,7 +46,8 @@ class Nodes(Thread):
                 print_log('w', f'Error on connect node : {str(e)}')
                 self.nodes_ready = False
             else:
-                self.nodes.append(Connection(conn, addr))
+                print('connection')
+                self.nodes.append(Connection(self.get_num_nodes(), conn, addr))
                 self.nodes[len(self.nodes)-1].start()
 
     def close_nodes_connection(self):
