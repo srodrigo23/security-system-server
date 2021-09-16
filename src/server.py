@@ -1,4 +1,4 @@
-import socket
+import socket, time
 from loger import print_log
 
 from settings import Settings
@@ -29,6 +29,8 @@ class Server:
                 """
                 run while server threads are running
                 """
+                time.sleep(0.2) #to prevent cpu overcharge 
+                
         except KeyboardInterrupt: # close all threads
             print_log('e', 'Server interrupted...')
             self.stop_server()
