@@ -7,7 +7,7 @@ logging.basicConfig(
 def print_log(level, message):
     if level=='d': #debug
         logging.debug(message)
-    elif level=='i':#info
+    elif level=='i':#info   
         logging.info(message)
     elif level=='w': #warning
         logging.warning(message)

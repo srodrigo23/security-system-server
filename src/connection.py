@@ -12,10 +12,13 @@ else:
 
 class Connection(Thread):
     
-    def __init__(self, ident,  client, address):
+    def __init__(self, ident, client, address):
+        """
+        Method to create a connection from 
+        """
         Thread.__init__(self)
         
-        self.id = ident # indetificador
+        self.id = ident # identificador HASH
         self.client = client
         self.address = address
         self.data = b""        
@@ -28,17 +31,17 @@ class Connection(Thread):
         while self.connect_ready:
             frame = self.read_frame()
             # self.frames_queue.put(frame)
-    
-    """
-    To return the frame recieved from node to be readed by a client.
-    """
+
     def get_frame(self):
+        """
+        To return the frame recieved from node to be readed by a client.
+        """
         return self.frames_queue.get()
     
-    """
-    To get the frame size
-    """
     def get_message_size(self):
+        """
+        To get the frame size
+        """
         while len(self.data) < self.payload_size:
             self.data += self.client.recv(4096)
         packed_msg_size = self.data[:self.payload_size] # receive image row data form client socket
@@ -46,6 +49,9 @@ class Connection(Thread):
         return struct.unpack(">L", packed_msg_size)[0]  
 
     def read_frame(self):
+        """
+        Method to read a frame
+        """
         msg_size = self.get_message_size()
         print(f"node {self.id} {msg_size}")
         while len(self.data) < msg_size:
@@ -56,5 +62,8 @@ class Connection(Thread):
         return  cv2.imdecode(frame, cv2.IMREAD_COLOR)
     
     def stop_connection(self):
+        """
+        
+        """
         self.connect_ready = False
         

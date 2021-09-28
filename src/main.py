@@ -1,7 +1,12 @@
 from server import Server
+from settings import Settings
 
 def run_server():
-    server =  Server()
+    """
+    Method to run server from server.py
+    """
+    settings = Settings()
+    server =  Server(settings)
     server.run()
 
 if __name__ == "__main__":
