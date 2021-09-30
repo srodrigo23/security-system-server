@@ -10,8 +10,6 @@ class ClientConnection(Thread):
     def send_message(self, order):
         if order=='clock':
             
-    
-    
     def run(self):
         while True:
             message = self.conn.recv(1024)

@@ -51,7 +51,9 @@ class Clients(Thread):
                 print_log('w', f'Error on connect client : {str(e)}')
                 self.clients_ready = False
             else:
-                pass
+                print("client connected")
+                print(f" {addr[0]} {addr[1]}")
+                # pass
                 # registering thread connection
                 # self.clients.append(Connection(conn, addr))
                 # self.clients[len(self.nodes)-1].start()

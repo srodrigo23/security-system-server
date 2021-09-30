@@ -52,7 +52,9 @@ class Nodes(Thread):
                 print_log('w', f'Error on connect node : {str(e)}')
                 self.nodes_ready = False
             else:
-                pass
+                print("Node connected")
+                print(f" {addr[0]}  {addr[1]}")
+                # pass
                 # registering thread connection
                 # self.nodes.append(Connection(
                 #     self.get_num_nodes(), conn, addr))
