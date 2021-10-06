@@ -42,7 +42,7 @@ class Server():
         
     def run(self):
         """
-        Ruinning to let nodes and clients running
+            Ruinning to let nodes and clients running
         """
         self.server_ready = True
         print_log('i', 'Server running...')
@@ -51,12 +51,13 @@ class Server():
                 # to prevent cpu overcharge
                 time.sleep(1) 
         except KeyboardInterrupt: # close all threads
+            print('Server interrupted')
             print_log('e', 'Server interrupted...')
             self.stop_server()
             
     def stop_server(self):
         """
-        Stop server in order to stop clients and nodes
+            Stop server in order to stop clients and nodes
         """
         self.server_ready = False
         self.stop_clients_thread()

@@ -1,5 +1,4 @@
 from threading import Thread
-from _thread import start_new_thread
 
 class ClientConnection(Thread):
     
@@ -9,6 +8,8 @@ class ClientConnection(Thread):
             
     def send_message(self, order):
         if order=='clock':
+            
+            
             
     def run(self):
         while True:

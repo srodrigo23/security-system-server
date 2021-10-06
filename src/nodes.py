@@ -1,8 +1,10 @@
 from loger import print_log
 from threading import Thread
 from connection import Connection
+from _thread import start_new_thread
 
 import socket
+import time
 
 class Nodes(Thread):
     
@@ -17,8 +19,8 @@ class Nodes(Thread):
         self.num_nodes = num_nodes
         self.nodes_ready = False
         self.nodes = {}
-        self.sckt_node = socket.socket(socket.AF_INET,
-                                       socket.SOCK_STREAM)
+        self.sckt_node = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.conn = None
         
     def run(self):
         """
@@ -47,18 +49,26 @@ class Nodes(Thread):
         print_log('i', 'Listen nodes...')
         while self.nodes_ready:
             try:
-                conn, addr = self.sckt_node.accept()
+                self.conn, addr = self.sckt_node.accept()
             except socket.error as e:
                 print_log('w', f'Error on connect node : {str(e)}')
                 self.nodes_ready = False
             else:
                 print("Node connected")
                 print(f" {addr[0]}  {addr[1]}")
+                start_new_thread(self.send_messages,())
                 # pass
                 # registering thread connection
                 # self.nodes.append(Connection(
                 #     self.get_num_nodes(), conn, addr))
                 # self.nodes[len(self.nodes)-1].start()
+                
+    def send_messages(self):
+        self.conn.sendall(b'send')
+        while True:
+            data = self.conn.recv(1024)
+            print(data)
+            time.sleep(1)
 
     def close_nodes_connection(self):
         """
