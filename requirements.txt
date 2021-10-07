@@ -13,3 +13,8 @@ toml==0.10.2
 typing-extensions==3.10.0.2
 Werkzeug==2.0.1
 zipp==3.5.0
+
+requests==2.21.0
+oauthlib==3.0.1
+pyOpenSSL==19.0.0
+Flask-Login==0.4.1

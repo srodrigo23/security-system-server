@@ -1,6 +1,8 @@
 from server import Server
 from settings import Settings
 
+from flask import Flask as f
+
 def run_server():
     """
     Method to run server from server.py
