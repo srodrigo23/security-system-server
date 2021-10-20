@@ -5,7 +5,7 @@ from flask import Flask as f
 
 def run_server():
     """
-    Method to run server from server.py
+        Method to run server from server.py
     """
     settings = Settings()
     server =  Server(settings)
