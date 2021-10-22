@@ -10,8 +10,8 @@ app = Flask(__name__)
 # a function with the url
 @app.route("/")
 def showHomePage():
-    # response from the server
-    return "This is home page"
+	# response from the server
+	return "This is home page"
 
 @app.route('/video/dash.mpd')
 def return_file():
@@ -20,9 +20,9 @@ def return_file():
 
 @app.route('/video/<path:filename>')
 def assets(filename):
-  # Add custom handling here.
-  # Send a file download response.
-  return send_from_directory('../ffmpeg', filename)
+	# Add custom handling here.
+	# Send a file download response.
+	return send_from_directory('../ffmpeg', filename)
 
 if __name__ == "__main__":
-  app.run(host="0.0.0.0")
+	app.run(host="0.0.0.0")
