@@ -14,7 +14,6 @@ command = [ FFMPEG_BIN,
 
 pipe = sp.Popen(command, stdout=sp.PIPE, stderr=sp.PIPE, bufsize=1920 * 1080 * 3+3357)
 
-
 while pipe.poll() is None:
 
     if cv2.waitKey(0) & 0xFF == ord('q'):
