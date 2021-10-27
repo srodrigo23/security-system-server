@@ -4,7 +4,7 @@ import cv2
 import pickle
 
 from threading import Thread
-import loger
+import logger
 if sys.version_info >= (3, 0):
     from queue import Queue
 else:

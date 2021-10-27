@@ -1,4 +1,4 @@
-from loger import print_log
+from logger import print_log
 from threading import Thread
 from connection import Connection
 from _thread import start_new_thread
@@ -6,7 +6,7 @@ from _thread import start_new_thread
 import socket
 import time
 
-class Nodes(Thread):
+class Node(Thread):
     
     def __init__(self, host, port, num_nodes):
         """
