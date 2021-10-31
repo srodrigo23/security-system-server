@@ -12,5 +12,5 @@ def launch_server_process(server, host, port):
 if __name__ == "__main__":
     launch_server_process(
         "tcp_server", s.get_host_tcp_server(), s.get_port_tcp_server())
-    launch_server_process(
-        "web_server", s.get_host_web_server(), s.get_port_web_server())
+    # launch_server_process(
+    #     "web_server", s.get_host_web_server(), s.get_port_web_server())
