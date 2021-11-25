@@ -14,4 +14,3 @@ class ClientConnection(Thread):
         while True:
             message = self.conn.recv(1024)
             if message == 'clock':
-    

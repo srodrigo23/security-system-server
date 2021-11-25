@@ -1,22 +1,19 @@
-from logger   import print_log
 
 import socket
-import struct  # new
-
 import numpy as np
-import struct  # new
+import struct
 import zlib
 import pickle
-from PIL import Image, ImageOps
 import cv2
-
-from threading import Thread
-import socket as s
 import time
 import sys
-import time
+
+from logger import print_log
+from PIL import Image, ImageOps
+from threading import Thread
 
 class TCPServer():
+    
     def __init__(self, host, port):
         self.__host__ = host
         self.__port__ = port
@@ -46,26 +43,23 @@ class TCPServer():
         thread.start()
 
     def run_connection(self, connection):
-        # connection.send(str.encode('Welcome to the Server'))
-        print("New Connection")
         """
         New Connection listening frames
         """
         data = b""
-        payload_size = struct.calcsize(">L")
-        print("payload_size: {}".format(payload_size))
-        cabecera = 0
+        payload_size = struct.calcsize(">L") # print("payload_size: {}".format(payload_size))
         
         while True:
+            cabecera = 0
             while len(data) < payload_size:
                 cabecera+=1
                 data_received = connection.recv(4096) # critico
                 if data_received == b"":
-                    print('Operacion termanada')
+                    print('Operacion terminada')
                     break
                 else:
                     data+=data_received
-                    print(f'recibiendo cabecera {cabecera}')
+                    print(f'Recibiendo cabecera {cabecera}')
             #receive image row data from client socket
             packed_msg_size = data[:payload_size]
             data = data[payload_size:]
@@ -90,14 +84,6 @@ class TCPServer():
             frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)  # Frame received
             print(str(frame))
             time.sleep(0.1)
-            
-            # data = connection.recv(2048)
-            # entry = data.decode('utf-8')
-            # print(entry)
-            # reply = 'Server says ' + data.decode('utf-8')
-            # if not data:
-            #     break
-            # connection.sendall(str.encode(reply))
         connection.close()
     
     def show_server_info(self):
@@ -108,6 +94,7 @@ class TCPServer():
 
 
 def run_tcp_server(host, port):
+    
     TCPServer(host, port).run()
 
 if __name__ == "__main__":
