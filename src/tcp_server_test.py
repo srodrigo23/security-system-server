@@ -3,10 +3,10 @@ import socketserver
 # https://www.oreilly.com/library/view/python-cookbook/0596001673/ch10s03.html
 
 class MyHandler(socketserver.BaseRequestHandler):
+    
     def handle(self):
         while True:
             data_received = self.request.recv(1024)
-            
             self.request.send(data_received)
             # print(data_received)
             if not data_received: 

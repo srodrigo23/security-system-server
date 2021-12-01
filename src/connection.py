@@ -66,4 +66,3 @@ class Connection(Thread):
         
         """
         self.connect_ready = False
-        

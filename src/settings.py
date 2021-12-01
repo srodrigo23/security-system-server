@@ -3,14 +3,11 @@ from configparser import ConfigParser
 parser = ConfigParser()
 parser.read('../config.ini')
 
-def get_host_web_server():
-    return parser.get('web_server', 'host')
+def get_host():
+    return parser.get('server', 'host')
 
-def get_port_web_server():
-    return parser.get('web_server', 'port')
+def get_port():
+    return parser.get('server', 'port')
 
-def get_host_tcp_server():
-    return parser.get('tcp_server', 'host')
-
-def get_port_tcp_server():
-    return int(parser.get('tcp_server', 'port'))
+def get_path_folder_streaming():
+    return parser.get('streaming', 'path_folder')

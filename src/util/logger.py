@@ -2,7 +2,9 @@ import logging
 
 logging.basicConfig(
     filename='system.log', 
-    format=' %(process)d %(asctime)s %(levelname)s : %(message)s', level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p')
+    format=' %(process)d %(asctime)s %(levelname)s : %(message)s', 
+    level=logging.DEBUG, 
+    datefmt='%m/%d/%Y %I:%M:%S %p')
 
 def print_log(level, message):
     if level=='d': #debug
