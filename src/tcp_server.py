@@ -40,10 +40,15 @@ class TCPServer():
         """
         Method to keep alive waiting to more connections
         """
-        print("Listen connections >")
+        print_log('i', "Listen connections : ")
         while True:
-            conn, addr = self.__socket__.accept()
-            self.start_new_connection(conn)
+            try:
+                conn, addr = self.__socket__.accept()
+            except KeyboardInterrupt:
+                print_log('i', "Server turned-off from keyboard")
+                break
+            else:
+                self.start_new_connection(conn)
             # self.__cons__.append__((conn, addr))
             # self.show_server_info()
 
@@ -59,6 +64,7 @@ class TCPServer():
         """
         Method to get frames every thread connection
         """
+        print_log('i', "New connection ready to receive frames")
         data = b""
         payload_size = struct.calcsize(">L") # print("payload_size: {}".format(payload_size))
         while True:
@@ -99,6 +105,6 @@ class TCPServer():
         """
         Method to show server info
         """
-        print(f'Num. conections : { len(self.cons) }')
+        print_log('i', f'Num. conections : { len(self.cons) }')
         for conn in self.cons:
-            print(f"Connection : {conn[1][0]} Address : {conn[1][1]}")
+            print_log('i', f"Connection : {conn[1][0]} Address : {conn[1][1]}")

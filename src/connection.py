@@ -17,7 +17,6 @@ class Connection(Thread):
         Method to create a connection from 
         """
         Thread.__init__(self)
-        
         self.id = ident # identificador HASH
         self.client = client
         self.address = address
