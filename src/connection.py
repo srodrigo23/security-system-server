@@ -3,33 +3,31 @@ import struct
 import cv2
 import pickle
 
-from threading import Thread
-import logger
-if sys.version_info >= (3, 0):
-    from queue import Queue
-else:
-    from Queue import Queue
+from util.logger import print_log
 
-class Connection(Thread):
+class Connection:
     
-    def __init__(self, ident, client, address):
+    def __init__(self, ident, connection, address):
         """
         Method to create a connection from 
         """
-        Thread.__init__(self)
-        self.id = ident # identificador HASH
-        self.client = client
-        self.address = address
-        self.data = b""        
+        self.id = ident
+        self.conn = connection
+        self.addr = address
+        self.data = b"" # ???????
         self.payload_size = struct.calcsize(">L")
+        self.frame = None
         self.connect_ready = True
         
-        self.frames_queue = Queue(maxsize=128)
-        
     def run(self):
+        """
+        Method to read frames from camera
+        """
+        print_log(self.id, self.address)
         while self.connect_ready:
-            frame = self.read_frame()
-            # self.frames_queue.put(frame)
+            
+            self.frame = self.read_frame()
+        self.conn.close()
 
     def get_frame(self):
         """
@@ -52,16 +50,15 @@ class Connection(Thread):
         Method to read a frame
         """
         msg_size = self.get_message_size()
-        print(f"node {self.id} {msg_size}")
         while len(self.data) < msg_size:
             self.data += self.client.recv(4096)
         frame_data = self.data[:msg_size]
         self.data = self.data[msg_size:]
-        frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes") # unpack image using pickle 
+        frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes") 
         return  cv2.imdecode(frame, cv2.IMREAD_COLOR)
     
     def stop_connection(self):
         """
-        
+        Method to stop connection
         """
         self.connect_ready = False
