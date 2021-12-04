@@ -24,7 +24,8 @@ class TCPServer():
         """
         self.__host__ = host
         self.__port__ = port
-        self.__connections__ = {}
+        self.__connections__ = {} #to store every Connection object
+        self.__frames_from_every_conn__ = {} # to store every frame
         self.__socket__ = s.socket(s.AF_INET, s.SOCK_STREAM)
         self.setup_server()
 
@@ -56,7 +57,9 @@ class TCPServer():
         """
         Method to create a new connection from a camera in a new thread
         """
-        conn = Connection(ident, conn, addr)
+        conn = Connection(ident, conn, addr, self.__frames_from_every_conn__)
         self.__connections__[ident] = Thread(target=conn.run, args=())
         self.__connections__[ident].setDaemon(True)
         self.__connections__[ident].start()
+    
+    
