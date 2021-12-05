@@ -13,3 +13,7 @@ def get_current_time():
         "minute": now.minute,
         "second": now.second
     }
+
+def get_current_time_string():
+    now = get_current_time()
+    return f"{now['year']}-{now['month']}-{now['day']} {now['hour']}:{now['minute']}:{now['second']}"

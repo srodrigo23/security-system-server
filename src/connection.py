@@ -24,11 +24,14 @@ class Connection:
         """
         Method to read frames from camera
         """
-        print_log('i', f"New Connection {self.id} - {self.addr}")
+        print_log('i', f"New Connection : {self.addr}")
         while self.connect_ready:
-            self.frames[self.id] = self.read_frame() # dictionary of frames
+            frame = self.read_frame() # dictionary of frames
+            # print(type(frame))
+            if frame is not None:
+                self.frames[self.id] = frame
         self.conn.close()
-        print_log('i', "")
+        print_log('i', "Connection Closed")
 
     def get_frame(self):
         """
@@ -40,23 +43,40 @@ class Connection:
         """
         To get the frame size
         """
-        while len(self.data) < self.payload_size:
-            self.data += self.conn.recv(4096)
-        packed_msg_size = self.data[:self.payload_size] # receive image row data form client socket
-        self.data = self.data[self.payload_size:]
-        return struct.unpack(">L", packed_msg_size)[0]  
+        while len(self.data) < self.payload_size and self.connect_ready:
+            data = self.conn.recv(4096)
+            if len(data) > 0:
+                self.data += data
+            else:
+                self.connect_ready = False
+        if self.connect_ready:
+            packed_msg_size = self.data[:self.payload_size] # receive image row data form client socket
+            self.data = self.data[self.payload_size:]
+            return struct.unpack(">L", packed_msg_size)[0]
+        else:
+            return 0
 
     def read_frame(self):
         """
         Method to read a frame
         """
         msg_size = self.get_message_size()
-        while len(self.data) < msg_size:
-            self.data += self.conn.recv(4096)
-        frame_data = self.data[:msg_size]
-        self.data = self.data[msg_size:]
-        frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes") 
-        return  cv2.imdecode(frame, cv2.IMREAD_COLOR)
+        if msg_size != 0:
+            while len(self.data) < msg_size and self.connect_ready:
+                data = self.conn.recv(4096)
+                if len(data) > 0:
+                    self.data += data
+                else:
+                    self.connect_ready = False
+            if self.connect_ready:        
+                frame_data = self.data[:msg_size]
+                self.data = self.data[msg_size:]
+                frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes") 
+                return cv2.imdecode(frame, cv2.IMREAD_COLOR)
+            else: 
+                return None
+        else:
+            return None
     
     def stop_connection(self):
         """

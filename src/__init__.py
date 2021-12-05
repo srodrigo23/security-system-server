@@ -1,5 +1,7 @@
 from tcp_server import TCPServer
 from util.logger import print_log
+from database.firebase_manager import FirebaseManager
+from util.date import get_current_time_string
 
 import settings as s
 
@@ -16,4 +18,6 @@ if __name__ == "__main__":
     """
     Main block code
     """
-    run_tcp_server(s.get_host(), int(s.get_port()))
+    fbmngr = FirebaseManager()
+    fbmngr.record_event(date=get_current_time_string(), type="Connection", description="Camera connected")
+    # run_tcp_server(s.get_host(), int(s.get_port()))
