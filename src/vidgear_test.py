@@ -1,7 +1,4 @@
-
-
 # https: // newbedev.com/pipe-raw-opencv-images-to-ffmpeg
-
 from vidgear.gears import WriteGear
 import cv2
 

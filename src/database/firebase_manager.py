@@ -1,7 +1,6 @@
 import firebase_admin
 from firebase_admin import db, credentials, messaging
 
-
 class FirebaseManager():
     
     def __init__(self):
@@ -26,10 +25,15 @@ class FirebaseManager():
         # response is a message ID String
         print("Succesfully sent message", response)
 
-    def record_event(self, date, type, description):
-        ref = db.reference('Registros')
+    def record_connection(self, id, uuid, date, address, connected):
+        """
+        Method to record a connection from a camera to a socket server
+        """
+        ref = db.reference('Connection')
         ref.push({
-            "fecha":date,
-            "tipo":type,
-            "desc":description
+            "id": id,
+            "uuid": str(uuid),
+            "date": date,
+            "address": str(address),
+            "connected": str(connected)
         })
