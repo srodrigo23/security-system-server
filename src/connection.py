@@ -1,20 +1,26 @@
+from util.logger import print_log
+from util.date import get_current_time_string
+from threading import Thread
+
+from live_streaming import LiveStreaming
+from settings import get_path_folder_streaming
+from util.directory import make_dir
+from util.directory import delete_dir
+
 import sys
 import struct
 import cv2
 import pickle
 
-from util.logger import print_log
-from util.date import get_current_time_string
-from live_streaming import LiveStreaming
-
-class Connection:
+class Connection(Thread):
     
     def __init__(self, ident, connection, address, id_random_gen, fb_admin):
+        Thread.__init__(self)
         """
         Method to create a connection from 
         """
         self.conn = connection
-        self.data = b"" # ???????
+        self.data = b"" 
         self.payload_size = struct.calcsize(">L")
         
         self.__frame__ = None
@@ -25,26 +31,28 @@ class Connection:
         self.__connect_ready__ = True
         self.__fb_admin__ = fb_admin
         self.__addr__ = address
-        
-        self.__live_streaming__ = LiveStreaming(self, 'path', 'hls', 25)
-        
+        self.__path__ = make_dir(get_path_folder_streaming(), f'live_{self.__id__}')
+        self.__live_streaming__ = LiveStreaming(self, self.__path__, 'hls', 30)
+    
     def run(self):
         """
         Method to read frames from camera
         """
         print_log('i', f"New Connection : {self.__addr__}")
         self.__fb_admin__.record_connection(self.__id__, self.__uuid__, get_current_time_string(), self.__addr__, True)
+        self.__live_streaming__.start()
         while self.__connect_ready__:
-            frame = self.read_frame() # dictionary of frames
-            # print(type(frame))
+            frame = self.read_frame()
             if frame is not None:
                 self.__frame__ = frame
             else:
-                self.__connect_ready__ = False
-        self.conn.close()
+                self.stop_connection()
+        self.conn.close() #close connection
         print_log('i', "Connection Closed")
+        delete_dir(self.__path__)
+        self.__live_streaming__.stop_stream()
         self.__fb_admin__.record_connection(self.__id__, self.__uuid__, get_current_time_string(), self.__addr__, False)
-
+        
     def get_frame(self):
         """
         To return the frame recieved from node to be readed by a client.
@@ -60,7 +68,7 @@ class Connection:
             if len(data) > 0:
                 self.data += data
             else:
-                self.__connect_ready__ = False
+                self.stop_connection()
         if self.__connect_ready__:
             packed_msg_size = self.data[:self.payload_size] # receive image row data form client socket
             self.data = self.data[self.payload_size:]
@@ -79,7 +87,7 @@ class Connection:
                 if len(data) > 0:
                     self.data += data
                 else:
-                    self.__connect_ready__ = False
+                    self.stop_connection()
             if self.__connect_ready__:
                 frame_data = self.data[:msg_size]
                 self.data = self.data[msg_size:]

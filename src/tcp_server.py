@@ -26,11 +26,9 @@ class TCPServer():
         """
         self.__host__ = host
         self.__port__ = port
-        self.__connections__ = {} #to store every Connection object
-        
+        self.__connections__ = {} #to store every Connection object        
         self.__id_generator__ = RandomCode(1, 20) #Code generator 1-20
         self.__firebase_manager__ = FirebaseManager() # Firebase manager
-        # self.__frames_from_every_conn__ = {} # to store every frame
         self.__socket__ = s.socket(s.AF_INET, s.SOCK_STREAM)
         self.setup_server()
 
@@ -55,6 +53,7 @@ class TCPServer():
                 ident = uuid.uuid4() 
                 self.start_new_connection(ident, conn, addr, self.__id_generator__, self.__firebase_manager__)
             except KeyboardInterrupt:
+                self.stop_all_connections()
                 print_log('i', "Server turned-off from keyboard")
                 break
 
@@ -63,8 +62,12 @@ class TCPServer():
         Method to create a new connection from a camera in a new thread
         """
         conn = Connection(ident, conn, addr, id_generator, fb_manager)
-        self.__connections__[ident] = Thread(target=conn.run, args=())
-        self.__connections__[ident].setDaemon(True)
+        self.__connections__[ident] = conn
         self.__connections__[ident].start()
+        
+    def stop_all_connections(self):
+        for key in self.__connections__:
+            self.__connections__[key].stop_connection()
+        print_log('i', "Stop all connections")
     
     

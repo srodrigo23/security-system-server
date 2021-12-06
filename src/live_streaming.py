@@ -2,9 +2,7 @@
 from vidgear.gears import CamGear
 from vidgear.gears import StreamGear
 from threading import Thread
-from settings import get_path_folder_streaming
-from util.directory import make_dir
-from util.directory import delete_dir
+from util.logger import print_log
 
 import cv2
 import time
@@ -27,19 +25,21 @@ class LiveStreaming(Thread):
             "-livestream": True
             }
         
-        
         self.__streamer__ = StreamGear(output=output_path, format = output_format, **stream_params)
         self.__stream__ = True
         
-    
     def run(self):
         """
         Method that make stream from frames stored on every connection
         """
         while self.__stream__:
-            frame = self.__streamer__.read()
-            if frame is None:
-                self.__stream__ = False
-            else:
+            frame = self.__source__.get_frame()
+            if frame is not None:
+                time.sleep(0.1)
                 self.__streamer__.stream(frame)
+                
+        print_log('i', "Stream terminated")
         self.__streamer__.terminate()
+    
+    def stop_stream(self):
+        self.__stream__ = False

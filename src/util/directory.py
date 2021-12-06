@@ -7,8 +7,9 @@ def make_dir(parent_path, folder_name):
     """
     path = os.path.join(parent_path, folder_name)
     os.mkdir(path)
+    return path
     
-def delete_dir(path)
+def delete_dir(path):
     """
     Method to delete a directory that keep streaimg files
     """
