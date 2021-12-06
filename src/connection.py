@@ -43,6 +43,7 @@ class Connection(Thread):
         self.__live_streaming__.start()
         while self.__connect_ready__:
             frame = self.read_frame()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             if frame is not None:
                 self.__frame__ = frame
             else:
