@@ -2,6 +2,10 @@ from util.logger import print_log
 from util.date import get_current_time_string
 from threading import Thread
 
+from detectors.fire_detector import FireDetector
+from detectors.motion_detector import MotionDetector
+from detectors.people_detector import PeopleDetector
+
 from live_streaming import LiveStreaming
 from settings import get_path_folder_streaming
 from util.directory import make_dir
@@ -34,6 +38,12 @@ class Connection(Thread):
         self.__path__ = make_dir(get_path_folder_streaming(), f'live_{self.__id__}')
         self.__live_streaming__ = LiveStreaming(self, self.__path__, 'hls', 30)
     
+    def get_frame_to_fire_detector(self):
+        return self.__frame_to_fire_detector__
+    
+    def get_frame_to_human_detector(self):
+        return self.__frame_to_human_detector__
+    
     def run(self):
         """
         Method to read frames from camera
@@ -41,11 +51,16 @@ class Connection(Thread):
         print_log('i', f"New Connection : {self.__addr__}")
         self.__fb_admin__.record_connection(self.__id__, self.__uuid__, get_current_time_string(), self.__addr__, True)
         self.__live_streaming__.start()
+        
+        self.init_detectors()
+        
         while self.__connect_ready__:
             frame = self.read_frame()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             if frame is not None:
                 self.__frame__ = frame
+                self.__frame_to_fire_detector__ = frame
+                self.__frame_to_human_detector__ = frame
             else:
                 self.stop_connection()
         self.conn.close() #close connection
@@ -53,6 +68,19 @@ class Connection(Thread):
         delete_dir(self.__path__)
         self.__live_streaming__.stop_stream()
         self.__fb_admin__.record_connection(self.__id__, self.__uuid__, get_current_time_string(), self.__addr__, False)
+        
+    def init_detectors(self):
+        """
+        method to init and start detectors
+        """
+        self.__fire_detector__ = FireDetector(self, self.__fb_admin__)
+        self.__fire_detector__.start()
+        
+        self.__people_detector__ = PeopleDetector(self, self.__fb_admin__)
+        self.__people_detector__.start()
+        
+        self.__motion_detector__ = MotionDetector(self, self.__fb_admin__)
+        self.__motion_detector__.start()
         
     def get_frame(self):
         """

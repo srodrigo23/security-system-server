@@ -1,0 +1,66 @@
+from threading import Thread
+
+import cv2 
+import time
+import pandas
+from datetime import datetime
+
+class MotionDetector(Thread):
+    """
+    Cam motion detector
+    page: https://www.geeksforgeeks.org/webcam-motion-detector-python/
+    """
+        
+    def __init__(self, connection, fb_admin):
+        """
+        Methos to initialize Motion Detector
+        """
+        Thread.__init__(self)
+        self.__connection__ = connection
+        self.__fb_admin__ = fb_admin
+        self.__ready_motion_detection__ = True
+        self.__frame__ = None
+    
+    def run(self):
+        """
+        Method to detect motion from static frames
+        """
+        static_back = None
+        motion_list = [None, None] # List when any moving objct appear
+        time = [] # Time of movement
+        while self.__ready_motion_detection__:
+            self.__frame__ = self.__connection__.get_frame() #reading frame(image) from video 
+            motion = 0 #no motion
+            gray = cv2.cvtColor(self.__frame__, cv2.COLOR_BGR2GRAY) #converting color image to gray_scale image
+            # Converting gray scale image to GaussianBlur so that change can be find easily
+            gray = cv2.GaussianBlur(gray, (21, 21), 0)
+            # In first iteration we assing the value of static_back to our first frame
+            if static_back is None:
+                static_back = gray
+                continue
+            # Difference between static background and current frame(wich is GaussianBlur)
+            diff_frame = cv2.absdiff(static_back, gray)
+            # If change in between static background and current frame is grather than 30 it will show white color(255)
+            thresh_frame = cv2.threshold(diff_frame, 30, 255, cv2.THRESH_BINARY)[1]
+            thresh_frame = cv2.dilate(thresh_frame, None, iterations=5)
+            # Finding contour of moving object
+            cnts, _ = cv2.findContours(thresh_frame.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            for contour in cnts:
+                area = cv2.contourArea(contour)
+                if area > 100000 or area < 200 : continue
+                motion = 1
+                (x, y, w, h) = cv2.boundingRect(contour)
+                # making green rectangle arround the moving object
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
+                
+            motion_list.append(motion) # Appending status of motion
+            motion_list = motion_list[-2:]
+            # Appending Start time of motion
+            if motion_list[-1]==1 and motion_list[-2]==0:
+                time.append(datetime.now())
+
+    def stop_motion_detector(self):
+        """
+        Method to stop motion detection
+        """
+        self.__ready_motion_detection__ = False

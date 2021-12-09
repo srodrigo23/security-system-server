@@ -1,9 +1,13 @@
 import firebase_admin
+
 from firebase_admin import db, credentials, messaging
 
 class FirebaseManager():
     
     def __init__(self):
+        """
+        Method to manage Firebase database
+        """
         # Fetch the service account key JSON file contents
         cred = credentials.Certificate('./database/private-key.json')
         # Initialize the app with a service account, granting admin privileges
@@ -12,6 +16,9 @@ class FirebaseManager():
         })
 
     def send_push(self, title, msg, registration_token, data_object=None):
+        """
+        Method to send a push notification direct to android app
+        """
         message = messaging.MulticastMessage(
             notification=messaging.Notification(
                 title=title,
@@ -37,3 +44,17 @@ class FirebaseManager():
             "address": str(address),
             "connected": str(connected)
         })
+    
+    def record_detection(self, id, uuid, date, address, event):
+        """
+        Method to record an event from a camera
+        """
+        ref = db.reference('Event')
+        ref.push({
+            "id": id,
+            "uuid": str(uuid),
+            "date": date,
+            "address": str(address),
+            "event": str(event)
+        })
+        

@@ -1,3 +1,9 @@
+from util.logger import print_log
+from PIL import Image, ImageOps
+from threading import Thread
+from connection import Connection
+from util.random_code import RandomCode
+from database.firebase_manager import FirebaseManager
 
 import socket as s
 import struct
@@ -7,14 +13,6 @@ import cv2
 import time
 import sys
 import uuid
-from connection import Connection
-
-from util.logger import print_log
-from PIL import Image, ImageOps
-from threading import Thread
-from connection import Connection
-from util.random_code import RandomCode
-from database.firebase_manager import FirebaseManager
 
 class TCPServer():
     """
