@@ -10,3 +10,4 @@ video
 *.ts
 *.mp4
 private-key.json
+config.ini
