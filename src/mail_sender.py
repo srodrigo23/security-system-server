@@ -48,8 +48,6 @@ class MailSender:
         """
         Method to prepare a mail in a thread
         message = "Se ha identificado la presencia de un(os) intruso(s)."
-        attachments = (arreglo de imagenes)
-        hls_stream_link = http://google.com.bo
         """
         my_message = MIMEMultipart("related")
         my_message["Subject"] = "Urgente"
@@ -90,6 +88,7 @@ class MailSender:
         # msg_image.add_header('Content-ID', '<{}>'.format(2))
         my_message.attach(msg_image)
         
+        
         # if len(attachments)>0:
         #     for attachment in attachments: #attachging files in a email
                 
@@ -125,7 +124,6 @@ class MailSender:
         
 message = "Se ha identificado la presencia de un(os) intruso(s)."
 attach = ['./img/pic1.jpg', './img/pic2.jpg', './img/pic4.jpeg']
-# attach = './img/pic1.jpg'
 hls_link = "http://google.com.bo"
 
 mail_sender = MailSender()

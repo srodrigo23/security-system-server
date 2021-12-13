@@ -26,3 +26,6 @@ def get_pass_sender():
 
 def get_receiver_mail():
     return parser.get('email', 'receiver_mail')
+
+def get_path_captures():
+    return parser.get('captures', 'path_captures')
