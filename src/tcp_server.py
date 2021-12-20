@@ -1,40 +1,32 @@
 from util.logger import print_log
-from PIL import Image, ImageOps
-from threading import Thread
 from connection import Connection
-from util.random_code import RandomCode
-from database.firebase_manager import FirebaseManager
+from util.id_generator import IDGenerator
 
 import socket as s
-import struct
-import zlib
-import pickle
-import cv2
-import time
-import sys
 import uuid
 
 class TCPServer():
     """
     TCPServer class
     """
+    
     def __init__(self, host, port):
         """
         Method to init a TCPServer class from host and port
         """
+        self.__socket__ = None
         self.__host__ = host
         self.__port__ = port
         self.__connections__ = {} #to store every Connection object        
-        self.__id_generator__ = RandomCode(1, 20) #Code generator 1-20
-        self.__firebase_manager__ = FirebaseManager() # Firebase manager
-        self.__socket__ = s.socket(s.AF_INET, s.SOCK_STREAM)
-        self.setup_server()
-
-    def setup_server(self):
+        self.__id_gen__ = IDGenerator() #ID consecitive generator
+        self.__tcp_server_ready__ = True
+        
+    def prepare_server(self):
         """
-        Method to start a TCPServer form host and port and init __cons__ to store connection object referencies
+        Method to prepare TCPServer from host and port to store connection object referencies
         """
         try:
+            self.__socket__ = s.socket(s.AF_INET, s.SOCK_STREAM)
             self.__socket__.bind((self.__host__, self.__port__))
             self.__socket__.listen(10)
         except s.error as e:
@@ -45,27 +37,21 @@ class TCPServer():
         Method to keep alive waiting to more connections
         """
         print_log('i', "Listen connections : ")
-        while True:
+        while self.__tcp_server_ready__:
             try:
-                conn, addr = self.__socket__.accept()
-                ident = uuid.uuid4() 
-                self.start_new_connection(ident, conn, addr, self.__id_generator__, self.__firebase_manager__)
+                connection, address = self.__socket__.accept()
+                ident = uuid.uuid4()
+                self.__connections__[ident] = Connection(id_con = self.__id_gen__.get_generate_id(),
+                                                         id_uuid4 = ident, 
+                                                         connection = connection, 
+                                                         address = address)
+                self.__connections__[ident].start()            
             except KeyboardInterrupt:
+                self.__tcp_server_ready__ = False
                 self.stop_all_connections()
                 print_log('i', "Server turned-off from keyboard")
-                break
-
-    def start_new_connection(self, ident, conn, addr, id_generator, fb_manager):
-        """
-        Method to create a new connection from a camera in a new thread
-        """
-        conn = Connection(ident, conn, addr, id_generator, fb_manager)
-        self.__connections__[ident] = conn
-        self.__connections__[ident].start()
-        
+    
     def stop_all_connections(self):
         for key in self.__connections__:
             self.__connections__[key].stop_connection()
         print_log('i', "Stop all connections")
-    
-    
