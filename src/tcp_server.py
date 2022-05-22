@@ -28,6 +28,7 @@ class TCPServer():
             self.__socket__ = s.socket(s.AF_INET, s.SOCK_STREAM)
             self.__socket__.bind((self.__host__, self.__port__))
             self.__socket__.listen(10)
+            print_log('i', f"Serving on : {self.__host__}; on port : {self.__port__}")
         except s.error as e:
             print(str(e))
             
@@ -41,7 +42,7 @@ class TCPServer():
                 connector, address = self.__socket__.accept()
                 ident = uuid.uuid4()
                 self.__connections__[ident] = Connection(id_con = self.__id_gen__.get_generate_id(),
-                                                         id_uuid4 = ident, 
+                                                         id_uuid4 = ident,
                                                          connector = connector, 
                                                          address = address)
                 self.__connections__[ident].start()            
