@@ -41,11 +41,15 @@ class TCPServer():
             try:
                 connector, address = self.__socket__.accept()
                 ident = uuid.uuid4()
-                self.__connections__[ident] = Connection(id_con = self.__id_gen__.get_generate_id(),
-                                                         id_uuid4 = ident,
-                                                         connector = connector, 
-                                                         address = address)
-                self.__connections__[ident].start()            
+                new_connection = Connection(
+                    id_con=self.__id_gen__.get_generate_id(),
+                    id_uuid4=ident,
+                    connector=connector,
+                    address=address,
+                    tcp_server=self)
+                self.__connections__[ident] = new_connection
+                self.__connections__[ident].start()
+                self.print_number_of_connections()
             except KeyboardInterrupt:
                 self.__tcp_server_ready__ = False
                 self.stop_all_connections()
@@ -58,3 +62,9 @@ class TCPServer():
         for key in self.__connections__:
             self.__connections__[key].stop_connection()
         print_log('i', "Stop all connections")
+    
+    def print_number_of_connections(self):
+        """
+        Method to print logging number of connections 
+        """
+        print_log('i', f'Number of Connections : {len(self.__connections__)}')

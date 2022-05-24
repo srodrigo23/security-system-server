@@ -16,7 +16,7 @@ import time
 
 class Connection(Thread):
     
-    def __init__(self, id_con, id_uuid4, connector, address):
+    def __init__(self, id_con, id_uuid4, connector, address, tcp_server):
         Thread.__init__(self)
         """
         Method to create a connection from 
@@ -26,7 +26,8 @@ class Connection(Thread):
         self.__connector__ = connector
         self.__addr__ = address
         self.__connect_ready__ = True
-        
+        self.__tcp_server__ = tcp_server
+
         # self.__fb_admin__ = Fire
         # self.__path__ = make_dir(get_path_folder_streaming(), f'live_{self.__id__}')
         # self.__live_streaming__ = LiveStreaming(self, self.__path__, 'hls', 30)
@@ -56,11 +57,11 @@ class Connection(Thread):
                 self.__frame__ = frame
                 self.__frame_to_fire_detector__ = frame
                 self.__frame_to_human_detector__ = frame
-            # else:
-                # self.stop_connection()
+            else:
+                self.stop_connection()
         self.__connector__.close() #close connection
-        print_log('i', "Connection Closed")
-        delete_dir(self.__path__)
+
+        # delete_dir(self.__path__)
         # self.__live_streaming__.stop_stream()
         # self.__fb_admin__.record_connection(self.__id__, self.__uuid__, get_current_time_string(), self.__addr__, False)
         
@@ -88,3 +89,6 @@ class Connection(Thread):
         Method to stop connection
         """
         self.__connect_ready__ = False
+        print_log('i', "Connection Closed")
+        del(self.__tcp_server__.__connections__[self.__uuid__])
+        self.__tcp_server__.print_number_of_connections()
