@@ -10,7 +10,6 @@ from util.date import get_current_time_string
 from frames_receiver import FramesReceiver
 from threading import Thread
 
-
 import cv2
 import time
 
@@ -48,7 +47,9 @@ class Connection(Thread):
         # self.__live_streaming__.start()
         
         # self.init_detectors()
+        self.__cam_id__ = self.__connector__.recv(1024)
         self.frame_receiver.start()
+        print_log('i', f'Camera : {self.__cam_id__.decode()} connected')
         while self.__connect_ready__:
             time.sleep(0.2)
             frame = self.frame_receiver.get_frame()
