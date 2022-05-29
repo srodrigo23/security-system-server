@@ -28,10 +28,13 @@ class FramesReceiver(Thread):
     def get_message_size(self):
         """ Method to get the frame size to build a frame again """
         while len(self.data) < self.payload_size and self.__running__:
-            data = self.__conn__.recv(4096)
-            if len(data) > 0:
-                self.data += data
-            else:
+            try:
+                data = self.__conn__.recv(4096)
+                if len(data) > 0:
+                    self.data += data
+                else:
+                    self.stop_connection()
+            except Exception as e:    
                 self.stop_connection()
         if self.__running__:
             packed_msg_size = self.data[:self.payload_size] # receive image row data form client socket
@@ -45,10 +48,13 @@ class FramesReceiver(Thread):
         msg_size = self.get_message_size()
         if msg_size != 0:
             while len(self.data) < msg_size and self.__running__:
-                data = self.__conn__.recv(4096)
-                if len(data) > 0:
-                    self.data += data
-                else:
+                try:
+                    data = self.__conn__.recv(4096)
+                    if len(data) > 0:
+                        self.data += data
+                    else:
+                        self.stop_connection()
+                except Exception as e:
                     self.stop_connection()
             if self.__running__:
                 frame_data = self.data[:msg_size]

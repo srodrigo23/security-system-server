@@ -24,7 +24,7 @@ class Connection(Thread):
         self.__connector__ = connector
         self.__addr__ = address
         self.__running__ = True
-        self.__tcp_server__ = tcp_server
+        self.__tcp_server__ = tcp_server    
         # self.__live_streaming__ = LiveStreaming(self, self.__path__, 'hls', 30)
     
     def run(self):
@@ -52,9 +52,11 @@ class Connection(Thread):
                     self.__frame_to_human_detector__ = frame
                 else:
                     self.stop_connection()
-    
+        else:
+            self.__connector__.send(b'ID Camera repeated.') #when connection is refused because there is id camera 
+            self.__running__ = False
+
         self.__connector__.close() #close connection
-        self.__running__ = False
         # delete_dir(self.__path__)
         # self.__live_streaming__.stop_stream()
         
