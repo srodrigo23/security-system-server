@@ -8,9 +8,7 @@ logging.basicConfig(
     datefmt='%m/%d/%Y %I:%M:%S %p')
 
 def print_log(level, message):
-    """
-    Method to print messages from system
-    """
+    """ Method to print messages from system """
     d = get_current_time_string()
     if level=='d': #debug
         logging.debug(message)

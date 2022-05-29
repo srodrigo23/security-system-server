@@ -1,31 +1,22 @@
 from util.logger import print_log
 from connection import Connection
-from util.id_generator import IDGenerator
 
 import socket as s
 import uuid
 
 class TCPServer():
-    """
-    TCPServer class
-    """
+    """ TCPServer class """
     def __init__(self, host, port):
-        """
-        Method to init a TCPServer class from host and port
-        """
+        """ Method to init a TCPServer class from host and port """
         self.__socket__ = None
         self.__host__ = host
         self.__port__ = port
-        self.__connections__ = {} #to store every Connection object        
-        self.__id_gen__ = IDGenerator() #ID consecitive generator
+        self.__connections__ = {}       # to store every Connection object
         self.__tcp_server_ready__ = True
-
-        self.__id_cameras__ = set() #id cameras
+        self.__id_cameras__ = set()     # id cameras
         
     def prepare_server(self):
-        """
-        Method to prepare TCPServer from host and port to store connection object referencies
-        """
+        """ Method to prepare TCPServer from host and port to store connection object referencies """
         try:
             self.__socket__ = s.socket(s.AF_INET, s.SOCK_STREAM)
             self.__socket__.bind((self.__host__, self.__port__))
@@ -35,23 +26,19 @@ class TCPServer():
             print(str(e))
             
     def run(self):
-        """
-        Method to keep alive waiting to more connections
-        """
+        """ Method to keep alive waiting to more connections """
         print_log('i', "Listen connections : ")
         while self.__tcp_server_ready__:
             try:
                 connector, address = self.__socket__.accept()
                 ident = uuid.uuid4()
                 new_connection = Connection(
-                    id_con=self.__id_gen__.get_generate_id(),
                     id_uuid4=ident,
                     connector=connector,
                     address=address,
                     tcp_server=self)
                 self.__connections__[ident] = new_connection
                 self.__connections__[ident].start()
-                # self.print_number_of_connections()
             except KeyboardInterrupt:
                 self.__tcp_server_ready__ = False
                 self.stop_all_connections()
@@ -68,7 +55,7 @@ class TCPServer():
     def stop_all_connections(self):
         """ Stop all connections that have been created """
         for connection in self.__connections__.values():
-            if connection.__connect_ready__:
+            if connection.__running__:
                 connection.stop_connection()
         print_log('i', "Stop all running connections")
     
@@ -76,7 +63,7 @@ class TCPServer():
         """ Method to print logging number of connections """
         cont=0
         for connection in self.__connections__.values():
-            if connection.__connect_ready__:
+            if connection.__running__:
                 cont = cont + 1 
         print_log('i', f'Number of Connections : {cont}')
 
