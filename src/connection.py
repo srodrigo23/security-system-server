@@ -16,50 +16,43 @@ import time
 class Connection(Thread):
     
     def __init__(self, id_con, id_uuid4, connector, address, tcp_server):
+        """ Method to create a connection from  """
         Thread.__init__(self)
-        """
-        Method to create a connection from 
-        """
         self.__id__ = id_con
         self.__uuid__ = id_uuid4
         self.__connector__ = connector
         self.__addr__ = address
         self.__connect_ready__ = True
         self.__tcp_server__ = tcp_server
+        self.frame_receiver = FramesReceiver(self.__connector__)
 
-        # self.__fb_admin__ = Fire
         # self.__path__ = make_dir(get_path_folder_streaming(), f'live_{self.__id__}')
         # self.__live_streaming__ = LiveStreaming(self, self.__path__, 'hls', 30)
-        self.frame_receiver = FramesReceiver(self.__connector__)
-    
-    def get_frame_to_fire_detector(self):
-        return self.__frame_to_fire_detector__
-    
-    def get_frame_to_human_detector(self):
-        return self.__frame_to_human_detector__
     
     def run(self):
-        """
-        Method to read frames from camera
-        """
+        """ Method to read frames from camera """
         print_log('i', f"New Connection : {self.__addr__}")
         # self.__fb_admin__.record_connection(self.__id__, self.__uuid__, get_current_time_string(), self.__addr__, True)
         # self.__live_streaming__.start()
-        
         # self.init_detectors()
         self.__cam_id__ = self.__connector__.recv(1024)
-        self.frame_receiver.start()
-        print_log('i', f'Camera : {self.__cam_id__.decode()} connected')
-        while self.__connect_ready__:
-            time.sleep(0.2)
-            frame = self.frame_receiver.get_frame()
-            if frame is not None:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                self.__frame__ = frame
-                self.__frame_to_fire_detector__ = frame
-                self.__frame_to_human_detector__ = frame
-            else:
-                self.stop_connection()
+
+        if not self.__tcp_server__.is_camera_connected(self.__cam_id__):
+            self.__tcp_server__.reg_connections(self.__cam_id__)
+            self.frame_receiver.start()
+            print_log('i', f'Camera : {self.__cam_id__.decode()} connected')
+            self.__tcp_server__.print_number_of_connections()
+            while self.__connect_ready__:
+                time.sleep(0.2)
+                frame = self.frame_receiver.get_frame()
+                if frame is not None:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    self.__frame__ = frame
+                    self.__frame_to_fire_detector__ = frame
+                    self.__frame_to_human_detector__ = frame
+                else:
+                    self.stop_connection()
+    
         self.__connector__.close() #close connection
 
         # delete_dir(self.__path__)
@@ -67,29 +60,27 @@ class Connection(Thread):
         # self.__fb_admin__.record_connection(self.__id__, self.__uuid__, get_current_time_string(), self.__addr__, False)
         
     def init_detectors(self):
-        """
-        method to init and start detectors
-        """
+        """ Method to init and start detectors """
         self.__fire_detector__ = FireDetector(self, self.__fb_admin__)
         self.__fire_detector__.start()
-        
-        # self.__people_detector__ = PeopleDetector(self, self.__fb_admin__)
+        self.__people_detector__ = PeopleDetector(self, self.__fb_admin__)
         self.__people_detector__.start()
-        
         self.__motion_detector__ = MotionDetector(self, self.__fb_admin__)
         self.__motion_detector__.start()
+
+    def get_frame_to_fire_detector(self):
+        return self.__frame_to_fire_detector__
+
+    def get_frame_to_human_detector(self):
+        return self.__frame_to_human_detector__
         
-    # def get_frame(self):
-    #     """
-    #     To return the frame recieved from node to be readed by a client.
-    #     """
-    #     return self.__frame__
+    def get_frame(self):
+        """ To return the frame recieved from node to be readed by a client. """
+        return self.__frame__
     
     def stop_connection(self):
-        """
-        Method to stop connection
-        """
+        """ Method to stop connection """
         self.__connect_ready__ = False
         print_log('i', "Connection Closed")
-        del(self.__tcp_server__.__connections__[self.__uuid__])
+        self.__tcp_server__.delete_id_camera(self.__cam_id__)
         self.__tcp_server__.print_number_of_connections()

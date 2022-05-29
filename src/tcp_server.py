@@ -19,6 +19,8 @@ class TCPServer():
         self.__connections__ = {} #to store every Connection object        
         self.__id_gen__ = IDGenerator() #ID consecitive generator
         self.__tcp_server_ready__ = True
+
+        self.__id_cameras__ = set() #id cameras
         
     def prepare_server(self):
         """
@@ -49,22 +51,36 @@ class TCPServer():
                     tcp_server=self)
                 self.__connections__[ident] = new_connection
                 self.__connections__[ident].start()
-                self.print_number_of_connections()
+                # self.print_number_of_connections()
             except KeyboardInterrupt:
                 self.__tcp_server_ready__ = False
                 self.stop_all_connections()
                 print_log('i', "Server turned-off from keyboard")
     
+    def reg_connections(self, id_camera):
+        """ Log if a camera has not been connected prevoiusly """
+        self.__id_cameras__.add(id_camera)
+
+    def is_camera_connected(self, id_camera):
+        """ Check if id_camera is already in actual connections """
+        return  id_camera in self.__id_cameras__
+
     def stop_all_connections(self):
-        """
-        Stop all connections that have been created
-        """
-        for key in self.__connections__:
-            self.__connections__[key].stop_connection()
-        print_log('i', "Stop all connections")
+        """ Stop all connections that have been created """
+        for connection in self.__connections__.values():
+            if connection.__connect_ready__:
+                connection.stop_connection()
+        print_log('i', "Stop all running connections")
     
     def print_number_of_connections(self):
-        """
-        Method to print logging number of connections 
-        """
-        print_log('i', f'Number of Connections : {len(self.__connections__)}')
+        """ Method to print logging number of connections """
+        cont=0
+        for connection in self.__connections__.values():
+            if connection.__connect_ready__:
+                cont = cont + 1 
+        print_log('i', f'Number of Connections : {cont}')
+
+    def delete_id_camera(self, id_camera):
+        """ Method to delete id camera connection """
+        if id_camera in self.__id_cameras__:
+            self.__id_cameras__.remove(id_camera)

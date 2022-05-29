@@ -6,13 +6,9 @@ import pickle
 import cv2
 
 class FramesReceiver(Thread):
-    """
-    Frame thread receiver 
-    """
+    """ Frame thread receiver """
     def __init__(self, connection):
-        """
-        Class constructor
-        """ 
+        """ Class constructor """ 
         Thread.__init__(self)
         self.data = b"" 
         self.payload_size = struct.calcsize(">L")
@@ -21,19 +17,16 @@ class FramesReceiver(Thread):
         self.__frame__ = None
         
     def run(self):
-        """
-        Method inherated to run a thread
-        """
+        """ Method inherated to run a thread """
         while self.__connect_ready__:
             self.__frame__ = self.read_frame()
 
     def get_frame(self):
+        """ Method to return frame received """
         return self.__frame__
 
     def get_message_size(self):
-        """
-        Method to get the frame size to build a frame again
-        """
+        """ Method to get the frame size to build a frame again """
         while len(self.data) < self.payload_size and self.__connect_ready__:
             data = self.__conn__.recv(4096)
             if len(data) > 0:
@@ -48,9 +41,7 @@ class FramesReceiver(Thread):
             return 0
         
     def read_frame(self):
-        """
-        Method to read a frame
-        """
+        """ Method to read a frame """
         msg_size = self.get_message_size()
         if msg_size != 0:
             while len(self.data) < msg_size and self.__connect_ready__:
@@ -70,7 +61,5 @@ class FramesReceiver(Thread):
             return None
         
     def stop_connection(self):
-        """
-        Method to stop frame receiver loop
-        """
+        """ Method to stop frame receiver loop """
         self.__connect_ready__ = False
