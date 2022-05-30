@@ -7,8 +7,8 @@ import cv2
 
 class FramesReceiver(Thread):
     """ Frame thread receiver """
+    
     def __init__(self, connection):
-        """ Class constructor """ 
         Thread.__init__(self)
         self.data = b"" 
         self.payload_size = struct.calcsize(">L")

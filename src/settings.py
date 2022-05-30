@@ -9,8 +9,17 @@ def get_host():
 def get_port():
     return parser.get('server', 'port')
 
-def get_path_folder_streaming():
-    return parser.get('streaming', 'path_folder')
+def get_media_folder_name():
+    return parser.get('media', 'folder_name')
+
+def get_stream_folder_name():
+    return parser.get('stream', 'folder_name')
+
+def get_captures_folder_name():
+    return parser.get('captures', 'folder_name')
+
+def get_database_file_name():
+    return parser.get('database', 'db_file_name')
 
 def get_email_port():
     return parser.get('email', 'port')
@@ -26,6 +35,3 @@ def get_pass_sender():
 
 def get_receiver_mail():
     return parser.get('email', 'receiver_mail')
-
-def get_path_captures():
-    return parser.get('captures', 'path_captures')

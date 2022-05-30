@@ -3,40 +3,47 @@ from detectors.motion_detector import MotionDetector
 from detectors.people_detector import PeopleDetector
 
 from live_streaming import LiveStreaming
-from settings import get_path_folder_streaming
+from settings import get_stream_folder_name, get_media_folder_name, get_captures_folder_name
 
-from util.directory import make_dir
-from util.directory import delete_dir
+from util.directory import make_dir, delete_dir, is_dir, join_path, get_root_path
 from util.logger import print_log
-from util.date import get_current_time_string
+from util.date import get_current_time_string, get_current_raw_time
 from frames_receiver import FramesReceiver
 from threading import Thread
 
+from db_manager import select_cameras_by_id_camera, insert_camera
+
 import cv2
 import time
+import os.path
 
 class Connection(Thread):
     
-    def __init__(self, id_uuid4, connector, address, tcp_server):
+    def __init__(self, id_uuid4, connector, address, db_conn, tcp_server):
         """ Method to create a connection from  """
         Thread.__init__(self)
         self.__uuid__ = id_uuid4
         self.__connector__ = connector
         self.__addr__ = address
         self.__running__ = True
-        self.__tcp_server__ = tcp_server    
+        self.__db_connection__ = db_conn 
+        self.__tcp_server__ = tcp_server
         # self.__live_streaming__ = LiveStreaming(self, self.__path__, 'hls', 30)
     
     def run(self):
         """ Method to read frames from camera """
         # self.__live_streaming__.start()
         # self.init_detectors()
-        self.__cam_id__ = self.__connector__.recv(1024)
+        camera_id_from_cam = self.__connector__.recv(1024)  # receive cam_id from camera
+        self.__cam_id__ = camera_id_from_cam.decode()
 
         if not self.__tcp_server__.is_camera_connected(self.__cam_id__):
             self.__tcp_server__.reg_connections(self.__cam_id__)
-            print_log('i', f"New Connection : {self.__addr__}")
-            print_log('i', f'Camera : {self.__cam_id__.decode()} connected')
+            print_log('i', f'New Connection : {self.__addr__}')
+            print_log('i', f'Camera : {self.__cam_id__} connected')
+
+            path_this_camera = self.create_folder_dir() # create folder 
+
             self.__tcp_server__.print_number_of_connections()
 
             self.frame_receiver = FramesReceiver(self.__connector__)
@@ -59,6 +66,29 @@ class Connection(Thread):
         self.__connector__.close() #close connection
         # delete_dir(self.__path__)
         # self.__live_streaming__.stop_stream()
+
+    def reg_new_camera(self, id_camera):
+        """ Method to log a new camera in cameras table database """
+        id_camera_db=0
+        regs = select_cameras_by_id_camera(self.__db_connection__, id_camera)
+        if len(regs)==0:
+            id_camera_db = insert_camera(
+                self.__db_connection__, (id_camera, get_current_raw_time(), ))
+        return id_camera_db
+    
+    def create_folder_dir(self) -> str:
+        """ Method to define a path to save pics and stream files. """
+        media_path = join_path(get_root_path(), get_media_folder_name())
+        if not is_dir(media_path):
+            make_dir(media_path)
+        current_cam_media_path = join_path(media_path, self.__cam_id__)
+        if not is_dir(current_cam_media_path):
+            make_dir(current_cam_media_path)
+            make_dir(join_path(current_cam_media_path,
+                    get_stream_folder_name()))  # stream folder
+            make_dir(join_path(current_cam_media_path, 
+                    get_captures_folder_name()))  # captures folder
+        return current_cam_media_path
         
     def init_detectors(self):
         """ Method to init and start detectors """

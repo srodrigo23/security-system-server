@@ -15,9 +15,7 @@ class LiveStreaming(Thread):
     """
     
     def __init__(self, source, output_path, output_format, frame_rate):
-        """
-        Method to init thread to stream video from a camera
-        """
+        """ Method to init thread to stream video from a camera """
         Thread.__init__(self)
         self.__source__ = source # origin to get frames to stream
         stream_params = {
@@ -29,15 +27,12 @@ class LiveStreaming(Thread):
         self.__stream__ = True
         
     def run(self):
-        """
-        Method that make stream from frames stored on every connection
-        """
+        """ Method that make stream from frames stored on every connection """
         while self.__stream__:
             frame = self.__source__.get_frame()
             if frame is not None:
                 time.sleep(0.1)
                 self.__streamer__.stream(frame)
-                
         print_log('i', "Stream terminated")
         self.__streamer__.terminate()
     

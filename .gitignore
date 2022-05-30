@@ -13,3 +13,5 @@ private-key.json
 *.ini
 
 config.ini
+database.db
+media/*

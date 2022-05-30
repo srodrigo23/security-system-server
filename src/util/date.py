@@ -1,9 +1,11 @@
 import datetime
 
+def get_current_raw_time():
+    """ Method to get raw just time info. """
+    return datetime.time.now()
+
 def get_current_time():
-    """
-    Method to return time dictionary
-    """
+    """ Method to return time dictionary. """
     now = datetime.datetime.now()
     return { 
         "year"  : now.year,
@@ -15,5 +17,6 @@ def get_current_time():
     }
 
 def get_current_time_string():
+    """ Current time string format. """
     now = get_current_time()
     return f"{now['year']}-{now['month']}-{now['day']} {now['hour']}:{now['minute']}:{now['second']}"

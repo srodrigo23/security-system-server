@@ -1,5 +1,6 @@
 from util.logger import print_log
 from connection import Connection
+from db_manager import create_database
 
 import socket as s
 import uuid
@@ -14,6 +15,7 @@ class TCPServer():
         self.__connections__ = {}       # to store every Connection object
         self.__tcp_server_ready__ = True
         self.__id_cameras__ = set()     # id cameras
+        self.__db_connection__ = create_database()
         
     def prepare_server(self):
         """ Method to prepare TCPServer from host and port to store connection object referencies """
@@ -36,6 +38,7 @@ class TCPServer():
                     id_uuid4=ident,
                     connector=connector,
                     address=address,
+                    db_conn=self.__db_connection__,
                     tcp_server=self)
                 self.__connections__[ident] = new_connection
                 self.__connections__[ident].start()
