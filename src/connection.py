@@ -11,7 +11,7 @@ from util.date import get_current_time_string, get_current_raw_time
 from frames_receiver import FramesReceiver
 from threading import Thread
 
-from db_manager import select_cameras_by_id_camera, insert_camera
+from db_manager import select_cameras_by_id_camera, insert_camera, insert_log
 
 import cv2
 import time
@@ -41,39 +41,57 @@ class Connection(Thread):
             self.__tcp_server__.reg_connections(self.__cam_id__)
             print_log('i', f'New Connection : {self.__addr__}')
             print_log('i', f'Camera : {self.__cam_id__} connected')
-
-            path_this_camera = self.create_folder_dir() # create folder 
-
             self.__tcp_server__.print_number_of_connections()
+            
+            path_this_camera = self.create_folder_dir() # create folder 
+            cap_folder_name = join_path(path_this_camera, get_captures_folder_name())
+            # str_folder_name = join_path(path_this_camera, get_stream_folder_name())
 
+            id_camera_db = self.log_new_camera(path_this_camera) #database
             self.frame_receiver = FramesReceiver(self.__connector__)
             self.frame_receiver.start()
-            
+            #log camera connected
+            self.log_camera_connected(id_camera_db)
             while self.__running__: 
                 time.sleep(0.2)
-                frame = self.frame_receiver.get_frame()
+                frame = self.frame_receiver.get_frame()    
                 if frame is not None:
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     self.__frame__ = frame
                     self.__frame_to_fire_detector__ = frame
                     self.__frame_to_human_detector__ = frame
+                    file_name = f'{join_path(cap_folder_name, self.get_pic_label())}'
+                    cv2.imwrite(file_name, frame)
                 else:
                     self.stop_connection()
+            #log camera disconnected
+            self.log_camera_connected(id_camera_db)
         else:
             self.__connector__.send(b'ID Camera repeated.') #when connection is refused because there is id camera 
             self.__running__ = False
 
-        self.__connector__.close() #close connection
-        # delete_dir(self.__path__)
+        self.__connector__.close() #close connection        
         # self.__live_streaming__.stop_stream()
 
-    def reg_new_camera(self, id_camera):
-        """ Method to log a new camera in cameras table database """
+    def log_camera_connected(self, id_camera_db):
+        """  """
+        insert_log(self.__db_connection__, 
+                (get_current_raw_time(), 
+                    ('CONNECTED' if self.__running__ else 'DISCONNECTED'), id_camera_db))
+
+    def get_pic_label(self):
+        """ Create a unique picture file name by time. """
+        return f"capture-{self.__cam_id__}-{get_current_time_string()}.jpg"
+
+    def log_new_camera(self, path):
+        """ Method to log a new camera in cameras table database. """
         id_camera_db=0
-        regs = select_cameras_by_id_camera(self.__db_connection__, id_camera)
+        regs = select_cameras_by_id_camera(self.__db_connection__, self.__cam_id__)
         if len(regs)==0:
             id_camera_db = insert_camera(
-                self.__db_connection__, (id_camera, get_current_raw_time(), ))
+                self.__db_connection__, (self.__cam_id__, get_current_raw_time(), path))
+        else:
+            id_camera_db = regs[0][0]
         return id_camera_db
     
     def create_folder_dir(self) -> str:

@@ -73,20 +73,20 @@ class MailSender:
         message_html = MIMEText(html, "html")
         my_message.attach(message_html)
         
-        # with open(attachments[0], 'rb') as file:
-        #     msg_image = MIMEImage(file.read(), name=basename(attachments[0]))
-        # # msg_image.add_header('Content-ID', '<{}>'.format(0))
-        # my_message.attach(msg_image)
+        with open(attachments[0], 'rb') as file:
+            msg_image = MIMEImage(file.read(), name=basename(attachments[0]))
+        # msg_image.add_header('Content-ID', '<{}>'.format(0))
+        my_message.attach(msg_image)
         
-        # with open(attachments[1], 'rb') as file:
-        #     msg_image = MIMEImage(file.read(), name=basename(attachments[1]))
-        # # msg_image.add_header('Content-ID', '<{}>'.format(1))
-        # my_message.attach(msg_image)
+        with open(attachments[1], 'rb') as file:
+            msg_image = MIMEImage(file.read(), name=basename(attachments[1]))
+        # msg_image.add_header('Content-ID', '<{}>'.format(1))
+        my_message.attach(msg_image)
         
-        # with open(attachments[2], 'rb') as file:
-        #     msg_image = MIMEImage(file.read(), name=basename(attachments[2]))
-        # # msg_image.add_header('Content-ID', '<{}>'.format(2))
-        # my_message.attach(msg_image)
+        with open(attachments[2], 'rb') as file:
+            msg_image = MIMEImage(file.read(), name=basename(attachments[2]))
+        # msg_image.add_header('Content-ID', '<{}>'.format(2))
+        my_message.attach(msg_image)
         
         
         # if len(attachments)>0:
@@ -123,7 +123,7 @@ class MailSender:
 
         
 message = "Se ha identificado la presencia de un(os) intruso(s)."
-# attach = ['./img/pic1.jpg', './img/pic2.jpg', './img/pic4.jpeg']
+attach = ['./img/pic1.jpg', './img/pic2.jpg', './img/pic4.jpeg']
 hls_link = "http://google.com.bo"
 
 mail_sender = MailSender()

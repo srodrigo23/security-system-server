@@ -2,7 +2,7 @@ import datetime
 
 def get_current_raw_time():
     """ Method to get raw just time info. """
-    return datetime.time.now()
+    return datetime.datetime.now()
 
 def get_current_time():
     """ Method to return time dictionary. """

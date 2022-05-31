@@ -27,9 +27,9 @@ def create_database():
                     camera_id integer NOT NULL,
                     FOREIGN KEY (camera_id) REFERENCES cameras (id));"""
     try:
-        # db_path = join_path(get_root_path(), get_database_file_name())
         go_up() # to save db file
-        db_conn = sqlite3.connect(get_database_file_name())
+        db_conn = sqlite3.connect(
+            get_database_file_name(), check_same_thread=False)
         c = db_conn.cursor()
         c.execute(sql_create_cameras_table)
         c.execute(sql_create_events_table)
@@ -59,7 +59,7 @@ def insert_event(conn, event):
 
 def insert_log(conn, camera_log):
     """ Create a new event camera connection connect/disconnect to db. """
-    sql = ''' INSERT INTO regs(date, status, camera_id)
+    sql = ''' INSERT INTO log(date, status, camera_id)
               VALUES(?,?,?) '''
     cur = conn.cursor()
     cur.execute(sql, camera_log)
@@ -93,41 +93,3 @@ def select_events_by_id_camera(conn, id_camera):
     cur.execute("SELECT * FROM cameras WHERE id_camera=?", (id_camera,))
     rows = cur.fetchall()
     return rows
-
-# import datetime
-# conn = create_database()
-# id_camera_reg = insert_new_camera(conn, ('5540408016', datetime.datetime.now(), '/user/mac/'))
-# print(id_camera_reg)
-# select_camera_by_id(conn, '5540408017')
-
-# def main():
-#     database = r"C:\sqlite\db\pythonsqlite.db"
-
-#     # create a database connection
-#     conn = create_connection(database)
-#     with conn:
-#         print("1. Query task by priority:")
-#         select_task_by_priority(conn, 1)
-
-#         print("2. Query all tasks")
-#         select_all_tasks(conn)
-
-# def main2():
-#     database = r"C:\sqlite\db\pythonsqlite.db"
-
-#     # create a database connection
-#     conn = create_connection(database)
-#     with conn:
-#         # create a new project
-#         project = ('Cool App with SQLite & Python', '2015-01-01', '2015-01-30')
-#         project_id = create_project(conn, project)
-
-#         # tasks
-#         task_1 = ('Analyze the requirements of the app', 1,
-#                   1, project_id, '2015-01-01', '2015-01-02')
-#         task_2 = ('Confirm with user about the top requirements',
-#                   1, 1, project_id, '2015-01-03', '2015-01-05')
-
-#         # create tasks
-#         create_task(conn, task_1)
-#         create_task(conn, task_2)
