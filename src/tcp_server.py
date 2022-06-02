@@ -1,14 +1,17 @@
 from util.logger import print_log
 from connection import Connection
 from db_manager import create_database
+from threading import Thread
 
 import socket as s
 import uuid
 
-class TCPServer():
+class TCPServer(Thread):
     """ TCPServer class """
     def __init__(self, host, port):
         """ Method to init a TCPServer class from host and port """
+        Thread.__init__(self)
+
         self.__socket__ = None
         self.__host__ = host
         self.__port__ = port
@@ -20,6 +23,7 @@ class TCPServer():
     def prepare_server(self):
         """ Method to prepare TCPServer from host and port to store connection object referencies """
         try:
+            print_log('i', "Welcome to the TCP-Server")
             self.__socket__ = s.socket(s.AF_INET, s.SOCK_STREAM)
             self.__socket__.bind((self.__host__, self.__port__))
             self.__socket__.listen(10)

@@ -9,6 +9,9 @@ def get_host():
 def get_port():
     return parser.get('server', 'port')
 
+def get_port_web():
+    return parser.get('web', 'port')
+
 def get_media_folder_name():
     return parser.get('media', 'folder_name')
 

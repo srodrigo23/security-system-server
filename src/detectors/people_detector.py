@@ -5,26 +5,17 @@ import cv2
 import time
 
 class PeopleDetector(Thread):
-    """
-    PEOPLE DETECTION USING HOG
-    https://thedatafrog.com/en/articles/human-detection-video/
-    """
-    def __init__(self, connection, fb_admin):
-        """
-        Method to initialize People detector
-        """
+    
+    def __init__(self, connection):
         # initialize the HOG descriptor/person detector
         Thread.__init__(self)
         self.__hog__ = cv2.HOGDescriptor()
         self.__hog__.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
         self.__connection__ = connection
-        self.__fb_admin__ = fb_admin
         self.__frame__ = None
             
     def run(self):
-        """
-        Method to run people detection
-        """
+        """ Method to run people detection """
         while True:
             # Capture frame-by-frame
             ret, frame = cap.read()

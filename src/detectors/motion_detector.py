@@ -6,25 +6,15 @@ import pandas
 from datetime import datetime
 
 class MotionDetector(Thread):
-    """
-    Cam motion detector
-    page: https://www.geeksforgeeks.org/webcam-motion-detector-python/
-    """
-        
-    def __init__(self, connection, fb_admin):
-        """
-        Methos to initialize Motion Detector
-        """
+    """ page: https://www.geeksforgeeks.org/webcam-motion-detector-python/ """ 
+    def __init__(self, connection):
         Thread.__init__(self)
-        self.__connection__ = connection
-        self.__fb_admin__ = fb_admin
+        self.__connection__ = connection        
         self.__ready_motion_detection__ = True
         self.__frame__ = None
     
     def run(self):
-        """
-        Method to detect motion from static frames
-        """
+        """ Method to detect motion from static frames """
         static_back = None
         motion_list = [None, None] # List when any moving objct appear
         time = [] # Time of movement
@@ -58,9 +48,3 @@ class MotionDetector(Thread):
             # Appending Start time of motion
             if motion_list[-1]==1 and motion_list[-2]==0:
                 time.append(datetime.now())
-
-    def stop_motion_detector(self):
-        """
-        Method to stop motion detection
-        """
-        self.__ready_motion_detection__ = False
