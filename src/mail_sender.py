@@ -4,14 +4,8 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.mime.base import MIMEBase
-
 from _thread import start_new_thread
-
-from settings import get_email_port
-from settings import get_smtp_server
-from settings import get_sender_mail
-from settings import get_pass_sender
-from settings import get_receiver_mail
+from settings import get_email_port, get_smtp_server, get_sender_mail, get_pass_sender, get_receiver_mail
 
 import smtplib
 import ssl
@@ -19,9 +13,6 @@ import ssl
 class MailSender:
     
     def __init__(self):
-        """
-        Method to initialize mail sender
-        """
         self.__port__ = int(get_email_port())
         self.__sender_mail__ = get_sender_mail()
         self.__password__ = get_pass_sender()
@@ -30,9 +21,7 @@ class MailSender:
         self.__server__ = smtplib.SMTP(self.__smtp_sever__, self.__port__)
     
     def prepare_server(self):
-        """
-        Method to prepare smtp server to send mails
-        """
+        """ Method to prepare smtp server to send mails """
         try:
             self.__server__.ehlo()  # Can be omitted
             self.__server__.starttls()
@@ -40,8 +29,6 @@ class MailSender:
             self.__server__.login(self.__sender_mail__, self.__password__)
         except Exception as e:
             print(e)
-        # finally:
-            # self.__server__.quit()
     
     def prepare_mail(self, message, attachments, hls_stream_link):
         """

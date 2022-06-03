@@ -9,7 +9,7 @@ app = Flask("app")
 def main():
     return("Web Server")
 
-@path.route('/stream/<path:code_stream>/<path:filename>')
+@app.route('/stream/<path:code_stream>/<path:filename>')
 def streamming(code_stream, filename):
     """ """
     path = os.path.join(s.get_path_folder_streaming(), code_stream)
@@ -17,7 +17,7 @@ def streamming(code_stream, filename):
 
 def run_web_server(host, port):
     """ Method to run a web server """
-    app.run(host=host, port=port, debug=True)
+    app.run(host=host, port=port``)
 
 def run_tcp_server(host, port):
     """ Method to run a tcp server """
