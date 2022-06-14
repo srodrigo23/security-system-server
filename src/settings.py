@@ -9,9 +9,6 @@ def get_host():
 def get_port():
     return parser.get('server', 'port')
 
-def get_port_web():
-    return parser.get('web', 'port')
-
 def get_media_folder_name():
     return parser.get('media', 'folder_name')
 
@@ -23,6 +20,9 @@ def get_captures_folder_name():
 
 def get_database_file_name():
     return parser.get('database', 'db_file_name')
+
+def get_index_stream_file_name():
+    return parser.get('stream', 'index')
 
 def get_email_port():
     return parser.get('email', 'port')

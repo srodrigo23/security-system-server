@@ -1,16 +1,14 @@
 from util.logger import print_log
 from connection import Connection
 from db_manager import create_database
-from threading import Thread
 
 import socket as s
 import uuid
 
-class TCPServer(Thread):
+class TCPServer:
     """ TCPServer class """
     def __init__(self, host, port):
-        """ Method to init a TCPServer class from host and port """
-        Thread.__init__(self)
+        """ Method to init a TCPServer class from host and port """ 
 
         self.__socket__ = None
         self.__host__ = host
