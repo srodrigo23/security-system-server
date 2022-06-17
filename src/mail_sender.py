@@ -10,110 +10,78 @@ from settings import get_email_port, get_smtp_server, get_sender_mail, get_pass_
 import smtplib
 import ssl
 
+subject = "Live Eye Smart Report"
+port = int(get_email_port())
+smtp_server = get_smtp_server()
+sender_mail = get_sender_mail()
+password = get_pass_sender()
+receiver_mail = get_receiver_mail()
+
+def send_mail(message, attach, hls_link):
+    mail_sender = MailSender()
+    mail_sender.prepare_server()
+    mail = mail_sender.prepare_mail(message, attach, hls_link)
+    mail_sender.send_mail(mail.as_string())
+
 class MailSender:
-    
-    def __init__(self):
-        self.__port__ = int(get_email_port())
-        self.__sender_mail__ = get_sender_mail()
-        self.__password__ = get_pass_sender()
-        self.__receiver_mail__ = get_receiver_mail()
-        self.__smtp_sever__ = get_smtp_server()
-        self.__server__ = smtplib.SMTP(self.__smtp_sever__, self.__port__)
+
+    def __init__(self): 
+        self.server = smtplib.SMTP(smtp_server, port)
     
     def prepare_server(self):
         """ Method to prepare smtp server to send mails """
         try:
-            self.__server__.ehlo()  # Can be omitted
-            self.__server__.starttls()
-            self.__server__.ehlo()  # Can be omitted
-            self.__server__.login(self.__sender_mail__, self.__password__)
+            self.server.ehlo()  # Can be omitted
+            self.server.starttls()
+            self.server.ehlo()  # Can be omitted
+            self.server.login(sender_mail, password)
         except Exception as e:
             print(e)
     
     def prepare_mail(self, message, attachments, hls_stream_link):
-        """
-        Method to prepare a mail in a thread
-        message = "Se ha identificado la presencia de un(os) intruso(s)."
-        """
-        my_message = MIMEMultipart("related")
-        my_message["Subject"] = "Urgente"
-        my_message["From"] = self.__sender_mail__
-        my_message["To"] = self.__receiver_mail__
-        my_message["X-Priority"] = '1'
+        """ Method to prepare a mail in a thread """
+        mail = MIMEMultipart("related")
+
+        mail["Subject"] = subject
+        mail["From"] = sender_mail
+        mail["To"] = receiver_mail
+        mail["X-Priority"] = '1'
         
-        html = f"""
+        body = f"""
             <html>
                 <body>
-                    <div style="background-color:#7BB1FF;">
+                    <div style='background-color:#7BB1FF;'>
                         <p>
                             Hi,<br>
                             How are you?<br>
-                            <a href="http://www.realpython.com">Real Python</a> has many great tutorials.
+                            <a href='http://www.realpython.com'>Real Python</a> has many great tutorials.
                         </p>
+                        <p>{ message }</p>
                         <p>
-                            El enlace para ver lo que esta pasando en vivo es <a href="{hls_stream_link}">este.</a>
+                            Puedes ver <a href='{hls_stream_link}'>aqui</a> la transmision en vivo.
                         <p/>
                     </div>
                 </body>
             </html>"""
         
-        message_html = MIMEText(html, "html")
-        my_message.attach(message_html)
-        if(len(attachments) > 0):
-            with open(attachments[0], 'rb') as file:
-                msg_image = MIMEImage(file.read(), name=basename(attachments[0]))
-            # msg_image.add_header('Content-ID', '<{}>'.format(0))
-            my_message.attach(msg_image)
-            
-            with open(attachments[1], 'rb') as file:
-                msg_image = MIMEImage(file.read(), name=basename(attachments[1]))
-            # msg_image.add_header('Content-ID', '<{}>'.format(1))
-            my_message.attach(msg_image)
-            
-            with open(attachments[2], 'rb') as file:
-                msg_image = MIMEImage(file.read(), name=basename(attachments[2]))
-            # msg_image.add_header('Content-ID', '<{}>'.format(2))
-            my_message.attach(msg_image)
-        
-        
-        # if len(attachments)>0:
-        #     for attachment in attachments: #attachging files in a email
-                
-                # file = open(attachment, 'rb')
-                # part = MIMEImage(file.read(), name=basename(attachment))        
-                # part['Content-Disposition'] = 'attachment; filename="{}"'.format(basename(attachment))
-                    # my_message.attach(msg_image)
-                # with open(attachment, 'rb') as f:
-                #     mime = MIMEBase('image', 'jpg', filename=basename(attachment))
-                #     # add required header data:
-                #     mime.add_header('Content-Disposition', 'attachment', filename=basename(attachment))
-                #     mime.add_header('X-Attachment-Id', '0')
-                #     mime.add_header('Content-ID', '<0>')
-                #     # read attachment file content into the MIMEBase object
-                #     mime.set_payload(f.read())
-                #     # encode with base64
-                #     # encoders.encode_base64(mime)
-                #     # add MIMEBase object to MIMEMultipart object
-                #     my_message.attach(mime)
+        body_mail = MIMEText(body, "html")
+        mail.attach(body_mail)
 
-        
-        # start_new_thread(self.send_mail, (my_message.as_string(),))
-        self.send_mail(my_message.as_string())  
+        if(len(attachments) > 0):
+            for attach in attachments:
+                with open(attach, 'rb') as file:
+                    msg_image = MIMEImage(file.read(), name=basename(attach))
+                # msg_image.add_header('Content-ID', '<{}>'.format(0))
+                mail.attach(msg_image)
+        return mail
         
     def send_mail(self, message):
         try:
-            self.__server__.sendmail(self.__sender_mail__, self.__receiver_mail__, message)
+            self.server.sendmail(sender_mail, receiver_mail, message)
         except Exception as e:
             print(e)
         finally:
-            self.__server__.quit()
+            self.server.quit()
 
-        
-message = "Se ha identificado la presencia de un(os) intruso(s)."
-# attach = ['./img/pic1.jpg', './img/pic2.jpg', './img/pic4.jpeg']
-attach = []
-hls_link = "http://google.com.bo"
-
-mail_sender = MailSender()
-mail_sender.prepare_server()
-mail_sender.prepare_mail(message, attach, hls_link)
+send_mail('este es un mensaje', [], 'www.google.com')
+send_mail('este es otro mensaje', [], 'www.google.com')
