@@ -24,7 +24,6 @@ def send_mail(message, attach, hls_link):
     mail_sender.send_mail(mail.as_string())
 
 class MailSender:
-
     def __init__(self): 
         self.server = smtplib.SMTP(smtp_server, port)
     
@@ -50,13 +49,61 @@ class MailSender:
         body = f"""
             <html>
                 <body>
-                    <div style='background-color:#7BB1FF;'>
-                        <p>
-                            Hi,<br>
-                            How are you?<br>
-                            <a href='http://www.realpython.com'>Real Python</a> has many great tutorials.
+                    <div style='background-color:#FCF3CF; 
+                                font-family: "Lucida Console", "Courier New", monospace;'>
+                        <p style='font-weight: bold; font-size: large; text-align: center;'>
+                            SISTEMA DE VIDEO VIGILANCIA INTELIGENTE "LIVE EYE SMART"
                         </p>
                         <p>{ message }</p>
+                        <p>
+                            <table border='1' align='center'>
+                                <tr>
+                                    <th>Hoy</th>
+                                    <th>Mañana</th>
+                                    <th>Domingo</th>
+                                </tr>
+                                <tr>
+                                    <td>Soleado</td>
+                                    <td>Mayormente soleado</td>
+                                    <td>Parcialmente nublado</td>
+                                </tr>
+                                <tr>
+                                    <td>19°C</td>
+                                    <td>17°C</td>
+                                    <td>12°C</td>
+                                </tr>
+                                <tr>
+                                    <td>E 13 km/h</td>
+                                    <td>E 11 km/h</td>
+                                    <td>S 16 km/h</td>
+                                </tr>
+                            </table>
+                        </p>
+
+                        <p>
+                            <table border='1' align='center'>
+                                <tr>
+                                    <th>Hoy</th>
+                                    <th>Mañana</th>
+                                    <th>Domingo</th>
+                                </tr>
+                                <tr>
+                                    <td>Soleado</td>
+                                    <td>Mayormente soleado</td>
+                                    <td>Parcialmente nublado</td>
+                                </tr>
+                                <tr>
+                                    <td>19°C</td>
+                                    <td>17°C</td>
+                                    <td>12°C</td>
+                                </tr>
+                                <tr>
+                                    <td>E 13 km/h</td>
+                                    <td>E 11 km/h</td>
+                                    <td>S 16 km/h</td>
+                                </tr>
+                            </table>
+                        </p>
                         <p>
                             Puedes ver <a href='{hls_stream_link}'>aqui</a> la transmision en vivo.
                         <p/>
@@ -71,7 +118,6 @@ class MailSender:
             for attach in attachments:
                 with open(attach, 'rb') as file:
                     msg_image = MIMEImage(file.read(), name=basename(attach))
-                # msg_image.add_header('Content-ID', '<{}>'.format(0))
                 mail.attach(msg_image)
         return mail
         
@@ -82,6 +128,4 @@ class MailSender:
             print(e)
         finally:
             self.server.quit()
-
-send_mail('este es un mensaje', [], 'www.google.com')
-send_mail('este es otro mensaje', [], 'www.google.com')
+    

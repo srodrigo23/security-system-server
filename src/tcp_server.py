@@ -2,77 +2,91 @@ from util.logger import print_log
 from connection import Connection
 from db_manager import create_database
 
-import socket as s
+import socket as skt
+import settings as s
 import uuid
 
-class TCPServer:
-    """ TCPServer class """
-    def __init__(self, host, port):
-        """ Method to init a TCPServer class from host and port """ 
+host = s.get_host()
+port = int(s.get_port())
+database = None # global
 
-        self.__socket__ = None
-        self.__host__ = host
-        self.__port__ = port
-        self.__connections__ = {}       # to store every Connection object
-        self.__tcp_server_ready__ = True
-        self.__id_cameras__ = set()     # id cameras
-        self.__db_connection__ = create_database()
+class TCPServer:
+
+    def __init__(self):
+        """
+        Method to init a TCPServer class from host and port.
+        """ 
+        self.socket = None 
+        self.tcp_server_running = True
+        self.connections = {} # to store every Connection object
+        self.id_cameras = set()     # id cameras
         
     def prepare_server(self):
-        """ Method to prepare TCPServer from host and port to store connection object referencies """
+        """
+        Method to prepare TCPServer from host and port to store connection object referencies.
+        """
         try:
-            print_log('i', "Welcome to the TCP-Server")
-            self.__socket__ = s.socket(s.AF_INET, s.SOCK_STREAM)
-            self.__socket__.bind((self.__host__, self.__port__))
-            self.__socket__.listen(10)
-            print_log('i', f"Serving on : {self.__host__}; on port : {self.__port__}")
-        except s.error as e:
+            global database
+            print_log('i', "****** Welcome to the TCP-Server ******")
+            database = create_database()
+            self.socket = skt.socket(skt.AF_INET, skt.SOCK_STREAM)
+            self.socket.bind((host, port))
+            self.socket.listen(10)
+            print_log('i', f"Serving on : {host}; on port : {port}")
+        except skt.error as e:
             print(str(e))
             
     def run(self):
-        """ Method to keep alive waiting to more connections """
+        """
+        Method to keep alive waiting to more connections.
+        """
+        global database
         print_log('i', "Listen connections : ")
-        while self.__tcp_server_ready__:
+        while self.tcp_server_running:
             try:
-                connector, address = self.__socket__.accept()
+                connector, address = self.socket.accept()
                 ident = uuid.uuid4()
-                new_connection = Connection(
-                    id_uuid4=ident,
-                    connector=connector,
-                    address=address,
-                    db_conn=self.__db_connection__,
-                    tcp_server=self)
-                self.__connections__[ident] = new_connection
-                self.__connections__[ident].start()
+                self.connections[ident] = Connection(ident, connector, address, database, self)
+                self.connections[ident].start()
             except KeyboardInterrupt:
-                self.__tcp_server_ready__ = False
+                self.tcp_server_running = False
                 self.stop_all_connections()
                 print_log('i', "Server turned-off from keyboard")
     
     def reg_connections(self, id_camera):
-        """ Log if a camera has not been connected prevoiusly """
-        self.__id_cameras__.add(id_camera)
+        """
+        Log if a camera has not been connected prevoiusly.
+        """
+        self.id_cameras.add(id_camera)
 
-    def is_camera_connected(self, id_camera):
-        """ Check if id_camera is already in actual connections """
-        return  id_camera in self.__id_cameras__
+    def is_connected(self, id_camera):
+        """
+        Check if id_camera is already in actual connections.
+        """
+        return id_camera in self.id_cameras
 
     def stop_all_connections(self):
-        """ Stop all connections that have been created """
-        for connection in self.__connections__.values():
-            if connection.__running__:
+        """
+        Stop all connections that have been created.
+        """
+        for connection in self.connections.values():
+            if connection.running:
                 connection.stop_connection()
         print_log('i', "Stop all running connections")
     
     def print_number_of_connections(self):
-        """ Method to print logging number of connections """
+        """
+        Method to print logging number of connections.
+        """
         cont=0
-        for connection in self.__connections__.values():
-            if connection.__running__:
+        for connection in self.connections.values():
+            if connection.running:
                 cont = cont + 1 
         print_log('i', f'Number of Connections : {cont}')
 
     def delete_id_camera(self, id_camera):
-        """ Method to delete id camera connection """
-        if id_camera in self.__id_cameras__:
-            self.__id_cameras__.remove(id_camera)
+        """
+        Method to delete id camera connection.
+        """
+        if id_camera in self.id_cameras:
+            self.id_cameras.remove(id_camera)

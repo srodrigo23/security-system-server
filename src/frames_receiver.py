@@ -6,37 +6,43 @@ import pickle
 import cv2
 
 class FramesReceiver(Thread):
-    """ Frame thread receiver """
     
     def __init__(self, connection):
         Thread.__init__(self)
         self.data = b"" 
         self.payload_size = struct.calcsize(">L")
-        self.__conn__ = connection
-        self.__running__ = True
-        self.__frame__ = None
+        self.conn = connection
+        self.running = True
+        self.frame = None
         
     def run(self):
-        """ Method inherated to run a thread """
-        while self.__running__:
-            self.__frame__ = self.read_frame()
+        """
+        Method inherated to run a thread.
+        """
+        while self.running:
+            self.frame = self.read_frame()
 
     def get_frame(self):
-        """ Method to return frame received """
-        return self.__frame__
+        """
+        Method to return frame received.
+        """
+        return self.frame
 
     def get_message_size(self):
-        """ Method to get the frame size to build a frame again """
-        while len(self.data) < self.payload_size and self.__running__:
+        """
+        Method to get the frame size to build a frame again.
+        """
+        while len(self.data) < self.payload_size and self.running:
             try:
-                data = self.__conn__.recv(4096)
+                data = self.conn.recv(4096)
                 if len(data) > 0:
                     self.data += data
                 else:
                     self.stop_connection()
-            except Exception as e:    
+            except Exception as e: 
+                print(f"{e} error in get message size")   
                 self.stop_connection()
-        if self.__running__:
+        if self.running:
             packed_msg_size = self.data[:self.payload_size] # receive image row data form client socket
             self.data = self.data[self.payload_size:]
             return struct.unpack(">L", packed_msg_size)[0]
@@ -44,19 +50,22 @@ class FramesReceiver(Thread):
             return 0
         
     def read_frame(self):
-        """ Method to read a frame """
+        """
+        Method to read a frame.
+        """
         msg_size = self.get_message_size()
         if msg_size != 0:
-            while len(self.data) < msg_size and self.__running__:
+            while len(self.data) < msg_size and self.running:
                 try:
-                    data = self.__conn__.recv(4096)
+                    data = self.conn.recv(4096)
                     if len(data) > 0:
                         self.data += data
                     else:
                         self.stop_connection()
                 except Exception as e:
+                    print(f"{e} error in read frame")   
                     self.stop_connection()
-            if self.__running__:
+            if self.running:
                 frame_data = self.data[:msg_size]
                 self.data = self.data[msg_size:]
                 frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes") 
@@ -67,5 +76,7 @@ class FramesReceiver(Thread):
             return None
         
     def stop_connection(self):
-        """ Method to stop frame receiver loop """
-        self.__running__= False
+        """
+        Method to stop frame receiver loop.
+        """
+        self.running = False

@@ -1,12 +1,6 @@
 from tcp_server import TCPServer
 
-import settings as s
-
-def run_tcp_server(host, port):
-    """ Method to run a tcp server """
-    tcp_server = TCPServer(host, port)
+if __name__ == "__main__":
+    tcp_server = TCPServer()
     tcp_server.prepare_server()
     tcp_server.run()
-
-if __name__ == "__main__":
-    run_tcp_server(s.get_host(), int(s.get_port()))

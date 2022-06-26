@@ -6,7 +6,7 @@ import pandas
 from datetime import datetime
 
 class MotionDetector(Thread):
-    """ page: https://www.geeksforgeeks.org/webcam-motion-detector-python/ """ 
+    
     def __init__(self, connection):
         Thread.__init__(self)
         self.__connection__ = connection        

@@ -20,3 +20,11 @@ def get_current_time_string():
     """ Current time string format. """
     now = get_current_time()
     return f"{now['year']}-{now['month']}-{now['day']} {now['hour']}:{now['minute']}:{now['second']}"
+
+def get_date():
+    now = get_current_time()
+    return f"{now['day']}-{now['month']}-{now['year']}"
+
+def get_time():
+    now = get_current_time()
+    return f"{now['hour']}:{now['minute']}:{now['second']}"
