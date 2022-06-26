@@ -1,5 +1,3 @@
-# import required libraries
-from vidgear.gears import CamGear
 from vidgear.gears import StreamGear
 from threading import Thread
 from util.logger import print_log
@@ -29,7 +27,6 @@ class LiveStreaming(Thread):
         
     def run(self):
         """ Method that make stream from frames stored on every connection """
-        
         while self.__stream__:
             frame = self.__source__.get_frame()
             if frame is not None:

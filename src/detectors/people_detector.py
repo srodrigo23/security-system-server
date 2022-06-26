@@ -1,25 +1,27 @@
-from threading import Thread
-
 import numpy as np
 import cv2
 import time
+from util.logger import print_log
 
-print('people detector imported')
-
-hog = cv2.HOGDescriptor()
-hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-
-def detector(frame):
-    # frame = cv2.resize(frame, (640, 480))
-    gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY) # to a faster detection
-    boxes, weights = hog.detectMultiScale(gray, winStride=(8,8) )
-    boxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in boxes])
-    for (x, y, w, h) in boxes:
-        cv2.rectangle(frame, (x, y), (w, h), (0, 255, 0), 2)
-    if len(boxes) > 0:
-        return True, frame
-    
-    return False, None
+def detector(connection):
+    '''
+    Method to people detection
+    '''
+    hog = cv2.HOGDescriptor()
+    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+    print_log('i', f"People detection on camera: { connection.cam_id }")
+    while connection.running:
+        time.sleep(0.1)
+        frame = connection.get_frame()
+        if frame is not None:
+            gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+            boxes, weights = hog.detectMultiScale(gray, winStride=(8,8) )
+            # boxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in boxes])
+            if len(boxes) > 0:
+                connection.people_detections.append(frame)
+            # for (x, y, w, h) in boxes:
+            #     cv2.rectangle(frame, (x, y), (w, h), (0, 255, 0), 2)
+    print_log('i', f"Finishing people detection on camera: { connection.cam_id }")
 
 
 # class PeopleDetector(Thread):

@@ -1,25 +1,25 @@
-# from detectors import fire_detector
-# from detectors import people_detector
+from detectors import fire_detector
+from detectors import people_detector
+from detectors import motion_detector
 
 from live_streaming import LiveStreaming
 
 from settings import get_stream_folder_name, get_media_folder_name
-from settings import get_captures_folder_name, get_index_stream_file_name
+from settings import get_captures_folder_name
+from settings import get_index_stream_file_name
 
 from util.directory import make_dir, delete_dir, is_dir, join_path, get_root_path
 from util.logger import print_log
 from util.date import get_current_time_string, get_current_raw_time
+
 from frames_receiver import FramesReceiver
-
 from threading import Thread
-
 from db_manager import select_cameras_by_id_camera, insert_camera, insert_log
+from _thread import start_new_thread
 
 import cv2
 import time
 import os.path
-
-# from _thread import start_new_thread
 
 def log_camera_connected(db_connection, id_camera, running):
     """
@@ -72,10 +72,12 @@ class Connection(Thread):
         self.db_connection = db_conn 
         self.tcp_server = tcp_server
         self.frame = None
+        
         self.fire_detections = []
+        self.people_detections = []
+        self.motion_detections = []
     
     def run(self):
-        # self.init_detectors()
         self.cam_id = self.connector.recv(4096).decode()
 
         if not self.tcp_server.is_connected(self.cam_id):
@@ -99,17 +101,23 @@ class Connection(Thread):
             self.frame_receiver = FramesReceiver(self.connector)
             self.frame_receiver.start()
 
-            self.live_streaming = LiveStreaming(self, to_stream, 'hls', 10)
-            self.live_streaming.start()
+            # self.live_streaming = LiveStreaming(self, to_stream, 'hls', 10)
+            # self.live_streaming.start()
             
+            # start_new_thread(fire_detector.detector, (self,))
+            # start_new_thread(people_detector.detector, (self,))
+            start_new_thread(movement_detector.detector, (self,))
+
             while self.running:
-                time.sleep(1)     
+                time.sleep(1)
                 try:
                     frame = self.frame_receiver.get_frame()
                     if frame is not None:
                         self.frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                        # start_new_thread(fire_detector.detector,(self.frame, self.fire_detections)) 
-                        cv2.imwrite(get_file_name(cap_folder_name, self.cam_id), frame)
+                        # print(len(self.fire_detections))
+                        # print(len(self.people_detections))
+                        print(len(self.motion_detections))
+                        # cv2.imwrite(get_file_name(cap_folder_name, self.cam_id), frame)
                     else:
                         self.stop_connection()
                 except KeyboardInterrupt:
@@ -121,22 +129,11 @@ class Connection(Thread):
         else:
             self.connector.send(b'ID Camera repeated.') #when connection is refused because there is id camera 
             self.running = False
-
+        print(f'end connection {self.running}')
         self.connector.close() #close connection        
-        self.live_streaming.stop_stream()
+        # self.live_streaming.stop_stream()
         delete_dir(path_this_camera)
     
-    def init_detectors(self):
-        """
-        Method to init and start detectors
-        """
-        self.fire_detector = FireDetector(self)
-        self.fire_detector.start()
-        self.people_detector = PeopleDetector(self)
-        self.people_detector.start()
-        self.motion_detector = MotionDetector(self)
-        self.motion_detector.start()
-
     def get_frame(self):
         """
         To return the frame recieved from node to be readed by a client.
