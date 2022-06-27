@@ -106,7 +106,7 @@ class Connection(Thread):
             
             # start_new_thread(fire_detector.detector, (self,))
             # start_new_thread(people_detector.detector, (self,))
-            start_new_thread(movement_detector.detector, (self,))
+            start_new_thread(motion_detector.detector, (self,))
 
             while self.running:
                 time.sleep(1)
@@ -129,7 +129,6 @@ class Connection(Thread):
         else:
             self.connector.send(b'ID Camera repeated.') #when connection is refused because there is id camera 
             self.running = False
-        print(f'end connection {self.running}')
         self.connector.close() #close connection        
         # self.live_streaming.stop_stream()
         delete_dir(path_this_camera)

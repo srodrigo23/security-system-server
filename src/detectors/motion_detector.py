@@ -18,32 +18,25 @@ def detector(connection):
         if frame is not None:
             motion = 0 #no motion
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            # Converting gray scale image to GaussianBlur so that change can be find easily
             gray = cv2.GaussianBlur(gray, (21, 21), 0)
-            # In first iteration we assing the value of static_back to our first frame
             if static_back is None:
                 static_back = gray
                 continue
-            # Difference between static background and current frame(wich is GaussianBlur)
             diff_frame = cv2.absdiff(static_back, gray)
-            # If change in between static background and current frame is grather than 30 it will show white color(255)
+            # If change in between static background and current frame is 
+            # grather than 30 it will show white color(255)
             thresh_frame = cv2.threshold(diff_frame, 30, 255, cv2.THRESH_BINARY)[1]
-            thresh_frame = cv2.dilate(thresh_frame, None, iterations=5)
+            thresh_frame = cv2.dilate(thresh_frame, None, iterations=3)
             # Finding contour of moving object
             cnts, _ = cv2.findContours(thresh_frame.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             for contour in cnts:
-                area = cv2.contourArea(contour)
-                if area > 100000 or area < 200 : continue
-                motion = 1
+                if cv2.contourArea(contour) < 1000: continue
                 (x, y, w, h) = cv2.boundingRect(contour)
                 # making green rectangle arround the moving object
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
-                
-            motion_list.append(motion) # Appending status of motion
-            motion_list = motion_list[-2:]
-            # Appending Start time of motion
-            if motion_list[-1]==1 and motion_list[-2]==0:
-                time.append(datetime.now())
+            if len(cnts) > 0:
+                connection.motion_detections.append(frame)
+            
     print_log('i', f"Finishing motion detection on camera: { connection.cam_id }")
 
 # class MotionDetector(Thread):    
