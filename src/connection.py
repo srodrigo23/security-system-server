@@ -71,11 +71,10 @@ class Connection(Thread):
         self.running = True
         self.db_connection = db_conn 
         self.tcp_server = tcp_server
-        self.frame = None
-        
-        self.fire_detections = []
-        self.people_detections = []
-        self.motion_detections = []
+            
+        self.define_storage_frames()
+        self.define_storage_detections()
+        self.amount_detections = 5
     
     def run(self):
         self.cam_id = self.connector.recv(4096).decode()
@@ -106,17 +105,17 @@ class Connection(Thread):
             
             # start_new_thread(fire_detector.detector, (self,))
             # start_new_thread(people_detector.detector, (self,))
-            start_new_thread(motion_detector.detector, (self,))
+            # start_new_thread(motion_detector.detector, (self,))
 
             while self.running:
                 time.sleep(1)
                 try:
                     frame = self.frame_receiver.get_frame()
                     if frame is not None:
-                        self.frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        self.store_frame(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
                         # print(len(self.fire_detections))
                         # print(len(self.people_detections))
-                        print(len(self.motion_detections))
+                        # print(len(self.motion_detections))
                         # cv2.imwrite(get_file_name(cap_folder_name, self.cam_id), frame)
                     else:
                         self.stop_connection()
@@ -133,11 +132,59 @@ class Connection(Thread):
         # self.live_streaming.stop_stream()
         delete_dir(path_this_camera)
     
-    def get_frame(self):
+    def store_frame(self, frame):
+        """
+        Method to store frames to detectors
+        """
+        import copy
+        self.fire_detection_queue.put(copy.deepcopy(frame))
+        self.people_detection_queue.put(copy.deepcopy(frame))
+        self.motion_detection_queue.put(copy.deepcopy(frame))
+
+    def define_storage_frames(self):
+        """
+        Method to define queues to store frames
+        """
+        from queue import Queue
+        self.fire_detection_queue = Queue(maxsize = 200)
+        self.people_detection_queue = Queue(maxsize = 200)
+        self.motion_detection_queue = Queue(maxsize = 200)
+    
+    def define_storage_detections(self):
+        """
+        Method to define detections store
+        """
+        self.fire_detections = []
+        self.people_detections = []
+        self.motion_detections = []
+    
+    def put_fire_detection(self, frame):
+        len_list = self.fire_detections
+        if len_list > 10:
+            sep =  len_list / 5
+            save
+        else:
+            self.
+
+
+
+    def put_fire_detection(self, frame):
+        pass
+    
+    def put_fire_detection(self, frame):
+        pass
+
+    
+    def get_frame(self, detector):
         """
         To return the frame recieved from node to be readed by a client.
         """
-        return self.frame
+        if detector == 'fire_detector':
+            return self.fire_detection_queue.get()
+        elif detector == 'motion_detector':
+            return self.motion_detection_queue.get()
+        else:
+            return self.people_detection_queue.get()
     
     def stop_connection(self):
         """
@@ -149,4 +196,7 @@ class Connection(Thread):
         self.tcp_server.print_number_of_connections()
         
     def get_camera_id(self):
+        """
+        Method to return camera id to show in the live streaming view
+        """
         return self.cam_id

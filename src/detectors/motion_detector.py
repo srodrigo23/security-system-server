@@ -9,14 +9,12 @@ def detector(connection):
     Method to motion detection
     '''
     static_back = None
-    # motion_list = [None, None] # List when any moving objct appear
    
     print_log('i', f"Motion detection on camera: { connection.cam_id }")
     while connection.running:
         time.sleep(0.1)
         frame = connection.get_frame()
         if frame is not None:
-            motion = 0 #no motion
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (21, 21), 0)
             if static_back is None:

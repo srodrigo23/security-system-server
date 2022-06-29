@@ -16,7 +16,7 @@ def detector(connection):
         if frame is not None:
             gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
             boxes, weights = hog.detectMultiScale(gray, winStride=(8,8) )
-            # boxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in boxes])
+            boxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in boxes])
             if len(boxes) > 0:
                 connection.people_detections.append(frame)
             # for (x, y, w, h) in boxes:
