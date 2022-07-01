@@ -10,9 +10,13 @@ def detector(connection):
     print_log('i', f"Fire detection on camera: { connection.cam_id }")
     while connection.running:
         time.sleep(0.1)
-        frame = connection.get_frame()
+        frame_value = connection.get_frame()
+        frame = frame_value[0]
+        label = frame_value[1]
         if frame is not None:
             fire = fire_cascade.detectMultiScale(frame, 1.2, 5)
+            for (x,y,w,h) in fire:
+                cv2.rectangle(frame,(x-20,y-20),(x+w+20,y+h+20),(255,0,0),2)
             if len(fire) > 0:
-                connection.fire_detections.append(frame)
+                connection.fire_detections.append((frame, label))
     print_log('i', f"Finishing fire detection on camera: { connection.cam_id }")

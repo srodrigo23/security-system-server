@@ -16,7 +16,8 @@ time = []
 df = pandas.DataFrame(columns=["Start", "End"])
 
 # Capturing video
-video = cv2.VideoCapture(0)
+path = "/Users/sergiocardenas/Documents/GitHub/security-camera/src/video/video1.mp4"
+video = cv2.VideoCapture(path)
 
 # Infinite while loop to treat stack of image as video
 while True:
@@ -47,20 +48,22 @@ while True:
 	# If change in between static background and
 	# current frame is greater than 30 it will show white color(255)
 	thresh_frame = cv2.threshold(diff_frame, 30, 255, cv2.THRESH_BINARY)[1]
-	thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
+	thresh_frame = cv2.dilate(thresh_frame, None, iterations=3)
 
 	# Finding contour of moving object
 	cnts, _ = cv2.findContours(thresh_frame.copy(),
                             cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 	for contour in cnts:
-		if cv2.contourArea(contour) < 10000:
-			continue
+		area = cv2.contourArea(contour)
+		if area < 1000 : continue
 		motion = 1
 
 		(x, y, w, h) = cv2.boundingRect(contour)
 		# making green rectangle around the moving object
 		cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
+	if len(cnts) > 0:
+		print('movement')
 
 	# Appending status of motion
 	motion_list.append(motion)

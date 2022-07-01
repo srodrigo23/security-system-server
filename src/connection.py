@@ -112,7 +112,7 @@ class Connection(Thread):
                 try:
                     frame = self.frame_receiver.get_frame()
                     if frame is not None:
-                        self.store_frame(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                        self.store_frame(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), get_current_time_string)
                         # print(len(self.fire_detections))
                         # print(len(self.people_detections))
                         # print(len(self.motion_detections))
@@ -132,14 +132,14 @@ class Connection(Thread):
         # self.live_streaming.stop_stream()
         delete_dir(path_this_camera)
     
-    def store_frame(self, frame):
+    def store_frame(self, frame, date_time_label):
         """
         Method to store frames to detectors
         """
         import copy
-        self.fire_detection_queue.put(copy.deepcopy(frame))
-        self.people_detection_queue.put(copy.deepcopy(frame))
-        self.motion_detection_queue.put(copy.deepcopy(frame))
+        self.fire_detection_queue.put((copy.deepcopy(frame), date_time_label))
+        self.people_detection_queue.put((copy.deepcopy(frame), date_time_label))
+        self.motion_detection_queue.put((copy.deepcopy(frame), date_time_label))
 
     def define_storage_frames(self):
         """
@@ -159,22 +159,26 @@ class Connection(Thread):
         self.motion_detections = []
     
     def put_fire_detection(self, frame):
-        len_list = self.fire_detections
-        if len_list > 10:
-            sep =  len_list / 5
-            save
-        else:
-            self.
+        len_list = len(self.fire_detections)
+        if len_list > 20:
+            to_save = self.fire_detections[0::int(len_list / 5)]
+            self.save_and_mail('fire')
 
-
-
-    def put_fire_detection(self, frame):
-        pass
+    def put_people_detection(self, frame):
+        len_list = len(self.people_detections)
+        if len_list > 20:
+            to_save = self.fire_detections[0::int(len_list / 5)]
+            self.save_and_mail('people')
     
-    def put_fire_detection(self, frame):
+    def put_motion_detection(self, frame):
+        len_list = len(self.motion_detections)
+        if len_list > 20:
+            to_save = self.fire_detections[0::int(len_list / 5)]
+            self.save_and_mail('motion')
+    
+    def save_and_mail(self, folder_name):
         pass
 
-    
     def get_frame(self, detector):
         """
         To return the frame recieved from node to be readed by a client.

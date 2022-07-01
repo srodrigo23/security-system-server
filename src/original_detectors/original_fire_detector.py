@@ -3,8 +3,9 @@ import cv2
 import time
 # from playsound import playsound
 
-fire_cascade = cv2.CascadeClassifier('../classifiers/fire_detection.xml')
-cap = cv2.VideoCapture('../../media/fire1.mp4')
+fire_cascade = cv2.CascadeClassifier('fire_detection.xml')
+# cap = cv2.VideoCapture('../../media/fire1.mp4')
+cap = cv2.VideoCapture(0)
 time.sleep(2)
 while(True):
     ret, frame = cap.read()
@@ -12,8 +13,8 @@ while(True):
     fire = fire_cascade.detectMultiScale(frame, 1.2, 5)
     if len(fire) > 0:
         print("fire is detected")
-    # for (x,y,w,h) in fire:
-    #     cv2.rectangle(frame,(x-20,y-20),(x+w+20,y+h+20),(255,0,0),2)
+    for (x,y,w,h) in fire:
+        cv2.rectangle(frame,(x-20,y-20),(x+w+20,y+h+20),(255,0,0),2)
     #     roi_gray = gray[y:y+h, x:x+w]
     #     roi_color = frame[y:y+h, x:x+w]
         
