@@ -8,9 +8,9 @@ hog = cv2.HOGDescriptor()
 hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
 cv2.startWindowThread()
-video = '../../media/people.mp4'
+video = '../../media/video_movement1.mp4'
 # open webcam video stream
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(video)
 
 # the output will be written to output.avi
 out = cv2.VideoWriter(

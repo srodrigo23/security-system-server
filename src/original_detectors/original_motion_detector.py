@@ -9,20 +9,20 @@ static_back = None
 # List when any moving object appear
 motion_list = [None, None]
 # Time of movement
-time = []
+# time = []
 
 # Initializing DataFrame, one column is start
 # time and other column is end time
 df = pandas.DataFrame(columns=["Start", "End"])
 
 # Capturing video
-path = "/Users/sergiocardenas/Documents/GitHub/security-camera/src/video/video1.mp4"
+path = "../../media/video_movement1.mp4"
 video = cv2.VideoCapture(path)
 
 # Infinite while loop to treat stack of image as video
 while True:
 	# Reading frame(image) from video
-	# time.sleep(0.1)
+	time.sleep(0.1)
 	check, frame = video.read()
 	
 	# Initializing motion = 0(no motion)
@@ -71,12 +71,12 @@ while True:
 	motion_list = motion_list[-2:]
 
 	# Appending Start time of motion
-	if motion_list[-1] == 1 and motion_list[-2] == 0:
-		time.append(datetime.now())
+	# if motion_list[-1] == 1 and motion_list[-2] == 0:
+	# 	time.append(datetime.now())
 
 	# Appending End time of motion
-	if motion_list[-1] == 0 and motion_list[-2] == 1:
-		time.append(datetime.now())
+	# if motion_list[-1] == 0 and motion_list[-2] == 1:
+	# 	time.append(datetime.now())
 
 	# Displaying image in gray_scale
 	cv2.imshow("Gray Frame", gray)
@@ -92,17 +92,17 @@ while True:
 	# Displaying color frame with contour of motion of object
 	cv2.imshow("Color Frame", frame)
 
-	key = cv2.waitKey(1)
+	key = cv2.waitKey(25)
 	# if q entered whole process will stop
 	if key == ord('q'):
 		# if something is movingthen it append the end time of movement
-		if motion == 1:
-			time.append(datetime.now())
+		# if motion == 1:
+			# time.append(datetime.now())
 		break
 
 # Appending time of motion in DataFrame
-for i in range(0, len(time), 2):
-	df = df.append({"Start": time[i], "End": time[i + 1]}, ignore_index=True)
+# for i in range(0, len(time), 2):
+# 	df = df.append({"Start": time[i], "End": time[i + 1]}, ignore_index=True)
 
 # Creating a CSV file in which time of movements will be saved
 df.to_csv("Time_of_movements.csv")

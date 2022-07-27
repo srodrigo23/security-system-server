@@ -8,11 +8,10 @@ def detector(connection):
     '''
     fire_cascade = cv2.CascadeClassifier('classifiers/fire_detection.xml')
     print_log('i', f"Fire detection on camera: { connection.cam_id }")
+    i=1
     while connection.running:
         time.sleep(0.1)
-        frame_value = connection.get_frame()
-        frame = frame_value[0]
-        label = frame_value[1]
+        frame, label = connection.get_frame(objetive='fire_detector')
         if frame is not None:
             fire = fire_cascade.detectMultiScale(frame, 1.2, 5)
             for (x,y,w,h) in fire:

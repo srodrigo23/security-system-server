@@ -20,6 +20,7 @@ from _thread import start_new_thread
 import cv2
 import time
 import os.path
+import copy
 
 def log_camera_connected(db_connection, id_camera, running):
     """
@@ -75,6 +76,7 @@ class Connection(Thread):
         self.define_storage_frames()
         self.define_storage_detections()
         self.amount_detections = 5
+        self.stream = None
     
     def run(self):
         self.cam_id = self.connector.recv(4096).decode()
@@ -100,46 +102,64 @@ class Connection(Thread):
             self.frame_receiver = FramesReceiver(self.connector)
             self.frame_receiver.start()
 
-            # self.live_streaming = LiveStreaming(self, to_stream, 'hls', 10)
-            # self.live_streaming.start()
+            self.live_streaming = LiveStreaming(self, to_stream, 'hls', 10)
+            self.live_streaming.start()
             
             # start_new_thread(fire_detector.detector, (self,))
             # start_new_thread(people_detector.detector, (self,))
             # start_new_thread(motion_detector.detector, (self,))
 
+            vb = True
             while self.running:
-                time.sleep(1)
                 try:
+                    if vb:
+                        time.sleep(0.25)
+                        vb = False
+                    time.sleep(0.1)
                     frame = self.frame_receiver.get_frame()
                     if frame is not None:
                         self.store_frame(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), get_current_time_string)
-                        # print(len(self.fire_detections))
-                        # print(len(self.people_detections))
-                        # print(len(self.motion_detections))
                         # cv2.imwrite(get_file_name(cap_folder_name, self.cam_id), frame)
                     else:
                         self.stop_connection()
                 except KeyboardInterrupt:
                     self.stop_connection()
                     print_log('i', "Connection Closed")
-            
             #para la desconeccion
             log_camera_connected(self.db_connection, id_camera_db, self.running)  # log camera disconnected
         else:
-            self.connector.send(b'ID Camera repeated.') #when connection is refused because there is id camera 
             self.running = False
+            self.connector.send(b'ID Camera repeated.') #when connection is refused because there is id camera 
+
         self.connector.close() #close connection        
-        # self.live_streaming.stop_stream()
+        self.live_streaming.stop_stream()
         delete_dir(path_this_camera)
     
-    def store_frame(self, frame, date_time_label):
+    def stop_connection(self):
         """
-        Method to store frames to detectors
+        Method to stop connection
         """
-        import copy
-        self.fire_detection_queue.put((copy.deepcopy(frame), date_time_label))
-        self.people_detection_queue.put((copy.deepcopy(frame), date_time_label))
-        self.motion_detection_queue.put((copy.deepcopy(frame), date_time_label))
+        self.running = False
+        print_log('i', "Connection Closed")
+        self.live_streaming.stop_stream()
+        self.tcp_server.delete_id_camera(self.cam_id)
+        self.tcp_server.print_number_of_connections()
+    
+    def store_frame(self, frame, date_time):
+        """
+        Method to store frames in queue
+        """
+        self.store_frame_in_queue(self.fire_detection_queue, frame, date_time)
+        # self.store_frame_in_queue(self.people_detection_queue, frame, date_time)
+        # self.store_frame_in_queue(self.motion_detection_queue, frame, date_time)
+        self.store_frame_in_queue(self.stream_queue, frame, date_time)
+
+    def store_frame_in_queue(self, queue, frame, date_time):
+        """
+        Generic method to store frames
+        """
+        if queue.full():  queue.get()
+        else: queue.put((copy.deepcopy(frame), date_time))
 
     def define_storage_frames(self):
         """
@@ -149,6 +169,7 @@ class Connection(Thread):
         self.fire_detection_queue = Queue(maxsize = 200)
         self.people_detection_queue = Queue(maxsize = 200)
         self.motion_detection_queue = Queue(maxsize = 200)
+        self.stream_queue = Queue(maxsize = 200)
     
     def define_storage_detections(self):
         """
@@ -157,12 +178,20 @@ class Connection(Thread):
         self.fire_detections = []
         self.people_detections = []
         self.motion_detections = []
-    
+
+    def save_caption(self, path,frame, label):
+        pass
+
+    def save_and_mail(self, folder_name):
+        pass
+
     def put_fire_detection(self, frame):
         len_list = len(self.fire_detections)
         if len_list > 20:
             to_save = self.fire_detections[0::int(len_list / 5)]
+            # self.fire_detections[]
             self.save_and_mail('fire')
+    
 
     def put_people_detection(self, frame):
         len_list = len(self.people_detections)
@@ -175,29 +204,19 @@ class Connection(Thread):
         if len_list > 20:
             to_save = self.fire_detections[0::int(len_list / 5)]
             self.save_and_mail('motion')
-    
-    def save_and_mail(self, folder_name):
-        pass
-
-    def get_frame(self, detector):
+        
+    def get_frame(self, objetive='stream'):
         """
         To return the frame recieved from node to be readed by a client.
         """
-        if detector == 'fire_detector':
+        if objetive == 'fire_detector':
             return self.fire_detection_queue.get()
-        elif detector == 'motion_detector':
+        elif objetive == 'motion_detector':
             return self.motion_detection_queue.get()
-        else:
+        elif objetive == 'people_detector':
             return self.people_detection_queue.get()
-    
-    def stop_connection(self):
-        """
-        Method to stop connection
-        """
-        self.running = False
-        print_log('i', "Connection Closed")
-        self.tcp_server.delete_id_camera(self.cam_id)
-        self.tcp_server.print_number_of_connections()
+        else:
+            return self.stream_queue.get()
         
     def get_camera_id(self):
         """

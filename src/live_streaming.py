@@ -17,18 +17,25 @@ class LiveStreaming(Thread):
         """ Method to init thread to stream video from a camera """
         Thread.__init__(self)
         self.__source__ = source # origin to get frames to stream
+        # "-resolution": "640x360", "-framerate": "60.0"
         stream_params = {
-                "-input_framerate": frame_rate, 
-                "-livestream": True
-            }
-        
+            "-input_framerate": frame_rate, 
+            "-livestream": True,
+            "-streams": 
+                [
+            #         # {"-resolution": "1920x1080", "-video_bitrate": "4000k"}, # Stream1: 1920x1080 at 4000kbs bitrate
+            #         # {"-resolution": "1280x720", "-framerate": "30.0"}, # Stream2: 1280x720 at 30fps
+                    {"-resolution": "640x360", "-framerate": "30.0"}  # Stream3: 640x360 at 60fps 
+                ]
+        }
         self.__streamer__ = StreamGear(output=output_path, format = output_format, **stream_params)
         self.__stream__ = True
         
     def run(self):
         """ Method that make stream from frames stored on every connection """
+        time.sleep(1)
         while self.__stream__:
-            frame = self.__source__.get_frame()
+            frame, date = self.__source__.get_frame()
             if frame is not None:
                 time.sleep(0.1)
                 frame = self.put_text(self.__source__.get_camera_id(), frame, get_date(), get_time())
