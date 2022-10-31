@@ -10,24 +10,27 @@ from settings import get_index_stream_file_name
 
 from util.directory import make_dir, delete_dir, is_dir, join_path, get_root_path
 from util.logger import print_log
-from util.date import get_current_time_string, get_current_raw_time
+from util.date import get_current_time_string, get_current_raw_time, get_date, get_time
 
 from frames_receiver import FramesReceiver
 from threading import Thread
 from db_manager import select_cameras_by_id_camera, insert_camera, insert_log
 from _thread import start_new_thread
+from mail import mail_controller
+
+from threading import Thread
 
 import cv2
 import time
 import os.path
 import copy
 
-def log_camera_connected(db_connection, id_camera, running):
+def log_camera_connected(db_connection, id_camera, running, time):
     """
     Method to log camera conection in database
     """
     insert_log(db_connection, 
-        (get_current_raw_time(), ('CONNECTED' if running else 'DISCONNECTED'), id_camera)
+        (time, ('CONNECTED' if running else 'DISCONNECTED'), id_camera)
     )
 
 def create_folder_dir(cam_id):
@@ -44,13 +47,13 @@ def create_folder_dir(cam_id):
         make_dir(join_path(current_cam_media_path, get_captures_folder_name()))  # captures folder
     return current_cam_media_path
 
-def get_file_name(cap_folder_name, cam_id):
+def get_file_name(cap_folder_name, cam_id) -> str:
     """
     Create a unique picture file name by time.
     """
     return join_path(cap_folder_name, f"capture-{cam_id}-{get_current_time_string()}.jpg")
 
-def log_new_camera(db_connection, cam_id, path):
+def log_new_camera(db_connection, cam_id, path) -> str:
     """
     Method to log a new camera in cameras table database.
     """
@@ -58,8 +61,10 @@ def log_new_camera(db_connection, cam_id, path):
     regs = select_cameras_by_id_camera(db_connection, cam_id)
     if len(regs)==0:
         id_camera_db = insert_camera(db_connection, (cam_id, get_current_raw_time(), path))
+        print(f'this is the Id_camera_db {id_camera_db}')
     else:
         id_camera_db = regs[0][0]
+    # print(f'this is the Id_camera_db {id_camera_db}')
     return id_camera_db
 
 class Connection(Thread):
@@ -90,20 +95,28 @@ class Connection(Thread):
             self.tcp_server.print_number_of_connections()
             
             path_this_camera = create_folder_dir(self.cam_id) # create folder 
-
             cap_folder_name = join_path(path_this_camera, get_captures_folder_name())
             str_folder_name = join_path(path_this_camera, get_stream_folder_name())
-
             to_stream = join_path(str_folder_name, get_index_stream_file_name())
-
-            id_camera_db = log_new_camera(self.db_connection, self.cam_id, path_this_camera) #database
-            log_camera_connected(self.db_connection, id_camera_db, self.running)  # log camera connected
-
+            
+            id_camera_db = log_new_camera(
+                self.db_connection, 
+                self.cam_id, 
+                path_this_camera) #database
+            
+            log_camera_connected(
+                self.db_connection, 
+                id_camera_db, 
+                self.running,
+                time=get_current_raw_time())  # log camera connected
+            
+            self.init_process_sending_mail()
+            
             self.frame_receiver = FramesReceiver(self.connector)
             self.frame_receiver.start()
 
-            self.live_streaming = LiveStreaming(self, to_stream, 'hls', 10)
-            self.live_streaming.start()
+            # self.live_streaming = LiveStreaming(self, to_stream, 'hls', 10)
+            # self.live_streaming.start()
             
             # start_new_thread(fire_detector.detector, (self,))
             # start_new_thread(people_detector.detector, (self,))
@@ -125,15 +138,44 @@ class Connection(Thread):
                 except KeyboardInterrupt:
                     self.stop_connection()
                     print_log('i', "Connection Closed")
-            #para la desconeccion
-            log_camera_connected(self.db_connection, id_camera_db, self.running)  # log camera disconnected
+            
+            log_camera_connected(
+                self.db_connection,
+                id_camera_db,
+                self.running,
+                time=get_current_raw_time())  # log camera connected
+            
+            self.init_process_sending_mail()
         else:
             self.running = False
             self.connector.send(b'ID Camera repeated.') #when connection is refused because there is id camera 
 
         self.connector.close() #close connection        
-        self.live_streaming.stop_stream()
+        # self.live_streaming.stop_stream()
         delete_dir(path_this_camera)
+    
+    def init_process_sending_mail(self) -> None:
+        thread = Thread(
+            target=self.send_mail_notification_connection,
+            args=(self.cam_id, self.running,))
+        thread.start()
+        
+    def send_mail_notification_connection(self, cam_id:str, running:bool)-> None:
+        """"
+        Method to send mail when connect/disconnect a camera
+        """
+        mail_controller.send_mail_camera_event_connection(
+            camera_info={
+                'id': cam_id,
+                'time_connection': get_time(),
+                'date_connection': get_date()
+            },
+            status=running,
+            link='http://www.google.com' if running else '',
+        )
+        print_log(
+            'i', f"{'Mail sended : Connected Camera' if running else 'Mail Sended : Disconnected Camera'}")
+        
     
     def stop_connection(self):
         """
@@ -141,7 +183,7 @@ class Connection(Thread):
         """
         self.running = False
         print_log('i', "Connection Closed")
-        self.live_streaming.stop_stream()
+        # self.live_streaming.stop_stream()
         self.tcp_server.delete_id_camera(self.cam_id)
         self.tcp_server.print_number_of_connections()
     
