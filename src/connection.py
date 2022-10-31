@@ -1,29 +1,22 @@
-from detectors import fire_detector
-from detectors import people_detector
-from detectors import motion_detector
-
+# from settings import get_stream_folder_name, get_media_folder_name
+# from settings import get_captures_folder_name
+# from settings import get_index_stream_file_name
+from detectors import fire_detector, people_detector, motion_detector
 from live_streaming import LiveStreaming
-
-from settings import get_stream_folder_name, get_media_folder_name
-from settings import get_captures_folder_name
-from settings import get_index_stream_file_name
-
 from util.directory import make_dir, delete_dir, is_dir, join_path, get_root_path
 from util.logger import print_log
 from util.date import get_current_time_string, get_current_raw_time, get_date, get_time
-
 from frames_receiver import FramesReceiver
-from threading import Thread
 from db_manager import select_cameras_by_id_camera, insert_camera, insert_log
 from _thread import start_new_thread
 from mail import mail_controller
-
 from threading import Thread
 
 import cv2
 import time
 import os.path
 import copy
+import settings as s
 
 def log_camera_connected(db_connection, id_camera, running, time):
     """
@@ -37,14 +30,14 @@ def create_folder_dir(cam_id):
     """ 
     Method to define a path to save pics and stream files.
     """
-    media_path = join_path(get_root_path(), get_media_folder_name())
+    media_path = join_path(get_root_path(), s.get_media_folder_name())
     if not is_dir(media_path):
         make_dir(media_path)
     current_cam_media_path = join_path(media_path, cam_id)
     if not is_dir(current_cam_media_path):
         make_dir(current_cam_media_path)
-        make_dir(join_path(current_cam_media_path, get_stream_folder_name()))    # stream folder
-        make_dir(join_path(current_cam_media_path, get_captures_folder_name()))  # captures folder
+        make_dir(join_path(current_cam_media_path, s.get_stream_folder_name()))    # stream folder
+        make_dir(join_path(current_cam_media_path, s.get_captures_folder_name()))  # captures folder
     return current_cam_media_path
 
 def get_file_name(cap_folder_name, cam_id) -> str:
@@ -77,11 +70,14 @@ class Connection(Thread):
         self.running = True
         self.db_connection = db_conn 
         self.tcp_server = tcp_server
-            
+        
+        self.stream_enabled = s.get_stream_enabled()
+        self.stream_link = None
+        self.detectors_enabled = s.get_detectors_enabled()
+        
         self.define_storage_frames()
         self.define_storage_detections()
         self.amount_detections = 5
-        self.stream = None
     
     def run(self):
         self.cam_id = self.connector.recv(4096).decode()
@@ -94,16 +90,24 @@ class Connection(Thread):
 
             self.tcp_server.print_number_of_connections()
             
-            path_this_camera = create_folder_dir(self.cam_id) # create folder 
-            cap_folder_name = join_path(path_this_camera, get_captures_folder_name())
-            str_folder_name = join_path(path_this_camera, get_stream_folder_name())
-            to_stream = join_path(str_folder_name, get_index_stream_file_name())
+            self.frame_receiver = FramesReceiver(self.connector)
+            self.frame_receiver.start()
+            
+            path_this_camera = create_folder_dir(self.cam_id)
+            
+            if self.stream_enabled:     
+                cap_folder_name = join_path(path_this_camera, s.get_captures_folder_name())
+                str_folder_name = join_path(path_this_camera, s.get_stream_folder_name())
+                to_stream = join_path(str_folder_name, s.get_index_stream_file_name())
+                
+                self.live_streaming = LiveStreaming(self, to_stream, 'hls', 10)
+                self.live_streaming.start()
+                self.stream_link = f'localhost:5000/{self.cam_id}/stream/index.h3m8'
             
             id_camera_db = log_new_camera(
                 self.db_connection, 
                 self.cam_id, 
-                path_this_camera) #database
-            
+                path_this_camera)
             log_camera_connected(
                 self.db_connection, 
                 id_camera_db, 
@@ -112,15 +116,10 @@ class Connection(Thread):
             
             self.init_process_sending_mail()
             
-            self.frame_receiver = FramesReceiver(self.connector)
-            self.frame_receiver.start()
-
-            # self.live_streaming = LiveStreaming(self, to_stream, 'hls', 10)
-            # self.live_streaming.start()
-            
-            # start_new_thread(fire_detector.detector, (self,))
-            # start_new_thread(people_detector.detector, (self,))
-            # start_new_thread(motion_detector.detector, (self,))
+            if self.detectors_enabled:
+                start_new_thread(fire_detector.detector, (self,))
+                start_new_thread(people_detector.detector, (self,))
+                start_new_thread(motion_detector.detector, (self,))
 
             vb = True
             while self.running:
@@ -132,7 +131,8 @@ class Connection(Thread):
                     frame = self.frame_receiver.get_frame()
                     if frame is not None:
                         self.store_frame(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), get_current_time_string)
-                        # cv2.imwrite(get_file_name(cap_folder_name, self.cam_id), frame)
+                        if self.detectors_enabled:
+                            cv2.imwrite(get_file_name(cap_folder_name, self.cam_id), frame)
                     else:
                         self.stop_connection()
                 except KeyboardInterrupt:
@@ -151,16 +151,23 @@ class Connection(Thread):
             self.connector.send(b'ID Camera repeated.') #when connection is refused because there is id camera 
 
         self.connector.close() #close connection        
-        # self.live_streaming.stop_stream()
-        delete_dir(path_this_camera)
+        if self.stream_enabled : 
+            self.live_streaming.stop_stream()
+            delete_dir(path_this_camera)
     
     def init_process_sending_mail(self) -> None:
+        """
+        Start thread to send event mail.
+        """
         thread = Thread(
             target=self.send_mail_notification_connection,
-            args=(self.cam_id, self.running,))
+            args=(
+                self.cam_id, 
+                self.running, 
+                f"{self.stream_link if self.stream_enabled else ''}"))
         thread.start()
         
-    def send_mail_notification_connection(self, cam_id:str, running:bool)-> None:
+    def send_mail_notification_connection(self, cam_id:str, running:bool, link_stream:str)-> None:
         """"
         Method to send mail when connect/disconnect a camera
         """
@@ -171,7 +178,7 @@ class Connection(Thread):
                 'date_connection': get_date()
             },
             status=running,
-            link='http://www.google.com' if running else '',
+            link=f'http://{link_stream}' if (running and link_stream != '') else '',
         )
         print_log(
             'i', f"{'Mail sended : Connected Camera' if running else 'Mail Sended : Disconnected Camera'}")
@@ -183,7 +190,7 @@ class Connection(Thread):
         """
         self.running = False
         print_log('i', "Connection Closed")
-        # self.live_streaming.stop_stream()
+        if self.stream_enabled: self.live_streaming.stop_stream()
         self.tcp_server.delete_id_camera(self.cam_id)
         self.tcp_server.print_number_of_connections()
     
@@ -191,10 +198,12 @@ class Connection(Thread):
         """
         Method to store frames in queue
         """
-        self.store_frame_in_queue(self.fire_detection_queue, frame, date_time)
-        # self.store_frame_in_queue(self.people_detection_queue, frame, date_time)
-        # self.store_frame_in_queue(self.motion_detection_queue, frame, date_time)
-        self.store_frame_in_queue(self.stream_queue, frame, date_time)
+        if self.detectors_enabled:
+            self.store_frame_in_queue(self.fire_detection_queue, frame, date_time)
+            self.store_frame_in_queue(self.people_detection_queue, frame, date_time)
+            self.store_frame_in_queue(self.motion_detection_queue, frame, date_time)
+        if self.stream_enabled:
+            self.store_frame_in_queue(self.stream_queue, frame, date_time)
 
     def store_frame_in_queue(self, queue, frame, date_time):
         """
@@ -208,18 +217,21 @@ class Connection(Thread):
         Method to define queues to store frames
         """
         from queue import Queue
-        self.fire_detection_queue = Queue(maxsize = 200)
-        self.people_detection_queue = Queue(maxsize = 200)
-        self.motion_detection_queue = Queue(maxsize = 200)
-        self.stream_queue = Queue(maxsize = 200)
+        if self.detectors_enabled:
+            self.fire_detection_queue = Queue(maxsize = 200)
+            self.people_detection_queue = Queue(maxsize = 200)
+            self.motion_detection_queue = Queue(maxsize = 200)
+        if self.stream_enabled:
+            self.stream_queue = Queue(maxsize = 200)
     
     def define_storage_detections(self):
         """
         Method to define detections store
         """
-        self.fire_detections = []
-        self.people_detections = []
-        self.motion_detections = []
+        if self.detectors_enabled:
+            self.fire_detections = []
+            self.people_detections = []
+            self.motion_detections = []
 
     def save_caption(self, path,frame, label):
         pass

@@ -46,10 +46,7 @@ class MailSender:
         mail["From"]    = sender_mail
         mail["To"]      = receiver_mail
         mail["X-Priority"] = '1'
-        
-        # body = get_mail_template(
-        #     message=message, hls_stream_link=hls_stream_link)
-        
+         
         body_mail = MIMEText(mail_body, "html")
         mail.attach(body_mail)
 

@@ -38,3 +38,9 @@ def get_pass_sender():
 
 def get_receiver_mail():
     return parser.get('email', 'receiver_mail')
+
+def get_stream_enabled():
+    return parser.getboolean('stream', 'enabled')
+
+def get_detectors_enabled():
+    return parser.getboolean('detectors', 'enabled')

@@ -9,6 +9,9 @@ import uuid
 host = s.get_host()
 port = int(s.get_port())
 database = None # global
+stream_enabled = s.get_stream_enabled()
+detectors_enabled = s.get_detectors_enabled()
+
 
 class TCPServer:
 
@@ -33,6 +36,8 @@ class TCPServer:
             self.socket.bind((host, port))
             self.socket.listen(10)
             print_log('i', f"Serving on : {host}; on port : {port}")
+            print_log('i', f"Streaming enabled : {stream_enabled}")
+            print_log('i', f"Detectors enabled : {detectors_enabled}")
         except skt.error as e:
             print(str(e))
             
