@@ -1,6 +1,3 @@
-# from settings import get_stream_folder_name, get_media_folder_name
-# from settings import get_captures_folder_name
-# from settings import get_index_stream_file_name
 from detectors import fire_detector, people_detector, motion_detector
 from live_streaming import LiveStreaming
 from util.directory import make_dir, delete_dir, is_dir, join_path, get_root_path
