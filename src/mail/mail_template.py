@@ -1,5 +1,5 @@
 
-title = """<p style = 'font-weight: bold; font-size: large; text-align: center;'>
+title = """<p style = 'font-weight: bold; font-size: large; text-align: center; font-size: 2rem;'>
                 SISTEMA DE VIDEO VIGILANCIA INTELIGENTE \"LIVE EYE SMART\"
             </p>"""
 
@@ -37,7 +37,7 @@ def get_body_mail_camera_connected(camera_data: dict, status: bool, link: str, o
             <html>
                 <body>
                     <div style='background-color:{'#CAFAF8' if status else ' #FAF3CA'};
-                        font-family: Arial, Helvetica, sans-serif; font-size: 1rem;'>
+                        font-family: Arial, Helvetica, sans-serif; font-size: 1rem; padding: 1rem;'>
                         { title }
                         <p>{'Se ha detectado una nueva cámara :' if status else 'Se ha desconectado una cámara : ' }</p>
                         <p>
@@ -67,6 +67,64 @@ def get_body_mail_camera_connected(camera_data: dict, status: bool, link: str, o
                                 table_other_cams if len(other_cams)>0 else ''
                             }
                         </p>
+                    </div>                    
+                </body>
+            </html>
+        """
+    return template
+
+def get_body_mail_event_happen(detection_code : str, detection_info : dict, num_pics_ad:int) -> str:
+    
+    colors = {
+        'fire': '#F1948A',
+        'movement': '#D6EAF8',
+        'human_siluhete': '#F5EEF8',
+        'smoke': '#E5E7E9',
+    }
+    
+    detection = {
+        'fire': 'Fuego',
+        'movement': 'Movimiento',
+        'human_siluhete': 'Intruso',
+        'smoke': 'Humo',
+    }
+    
+    icons={
+        'fire': 'img/fire.png',
+        'movement': 'img/human.png',
+        'human_siluhete': 'img/movement.png',
+        'smoke': 'img/smoke.png',
+    }
+    
+    template = f""" 
+            <html>
+                <body>
+                    <div style='background-color:{colors[detection_code]};
+                    'font-family: Arial, Helvetica, sans-serif; font-size: 1rem;'>
+                        { title }
+                        <p>Se ha detectado : {detection[detection_code]}</p>
+                        <p>
+                            <img src='{icons[detection_code]}' alt='{detection[detection_code]}'>
+                        <p>
+                        <p>
+                            <div>
+                                <table border='1' align='center'>
+                                    <tr>
+                                        <th>Id de Cámara</th>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Transmisión</th>
+                                    </tr>
+                                    <tr>
+                                        <th>{detection_info['id']}</th>
+                                        <th>{detection_info['date_connection']}</th>
+                                        <th>{detection_info['time_connection']}</th>
+                                        <th>{detection_info['link']}</th>
+                                    </tr>
+                                </table>
+                            </div>
+                        </p>
+                        <p>{num_pics_ad} imágen(es) adjunta(s).</p>                        
                     </div>                    
                 </body>
             </html>
