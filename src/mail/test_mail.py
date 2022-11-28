@@ -53,9 +53,15 @@ detection_info = {
     'date_detection': get_date(),
     'link': 'https://www.google.com'
 }
+files = [
+    'mail/img/fire.png',
+    'mail/img/human.png',
+    'mail/img/movement.png',
+    'mail/img/smoke.png',
+]
 num_pics_ad = 4
 send_mail_camera_event_detection(
     detection_code=detection_code, 
     detection_info=detection_info, 
-    num_pics_ad=num_pics_ad
+    attachments=files
 )

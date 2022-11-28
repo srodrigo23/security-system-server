@@ -16,10 +16,10 @@ sender_mail   = s.get_sender_mail()
 password      = s.get_pass_sender()
 receiver_mail = s.get_receiver_mail()
 
-def send_mail(mail_body : str):
+def send_mail(mail_body : str, attachments=None):
     mail_sender = MailSender()
     mail_sender.prepare_server()
-    mail = mail_sender.prepare_mail(mail_body=mail_body)
+    mail = mail_sender.prepare_mail(mail_body=mail_body, attachments=attachments)
     mail_sender.send_mail(mail.as_string())
     
 class MailSender:
@@ -37,7 +37,7 @@ class MailSender:
         except Exception as e:
             print(e)
     
-    def prepare_mail(self, mail_body:str) -> None :
+    def prepare_mail(self, mail_body: str, attachments=None) -> MIMEMultipart:
         """
         Method to prepare a mail in a thread.
         """
@@ -50,11 +50,11 @@ class MailSender:
         body_mail = MIMEText(mail_body, "html")
         mail.attach(body_mail)
 
-        # if (attachments is not None) and (len(attachments) > 0) :
-        #     for attach in attachments:
-        #         with open(attach, 'rb') as file:
-        #             msg_image = MIMEImage(file.read(), name=basename(attach))
-        #         mail.attach(msg_image)
+        if attachments is not None:
+            for attach in attachments:
+                with open(attach, 'rb') as file:
+                    msg_image = MIMEImage(file.read(), name=basename(attach))
+                mail.attach(msg_image)
         return mail
         
     def send_mail(self, message) -> None:
