@@ -89,23 +89,25 @@ def get_body_mail_event_happen(detection_code : str, detection_info : dict, num_
         'smoke': 'Humo',
     }
     
-    icons={
-        'fire': 'img/fire.png',
-        'movement': 'img/human.png',
-        'human_siluhete': 'img/movement.png',
-        'smoke': 'img/smoke.png',
-    }
+    # icons={
+    #     'fire': "https://cdn.cdnlogo.com/logos/p/6/psg.svg",
+    #     # 'fire': 'tcpserver/src/mail/img/fire.png',
+    #     'movement': './src/mail/img/human.png',
+    #     'human_siluhete': './src/mail/img/movement.png',
+    #     'smoke': './src/mail/img/smoke.png',
+    # }
+    # <!-- < p >
+    #     <img src = '{#icons[detection_code]}' alt = '{detection[detection_code]}' >
+    # <p>-->
     
     template = f""" 
             <html>
                 <body>
                     <div style='background-color:{colors[detection_code]};
-                    'font-family: Arial, Helvetica, sans-serif; font-size: 1rem;'>
+                    font-family: Arial, Helvetica, sans-serif; font-size: 1rem; padding: 2rem;'>
                         { title }
-                        <p>Se ha detectado : {detection[detection_code]}</p>
-                        <p>
-                            <img src='{icons[detection_code]}' alt='{detection[detection_code]}'>
-                        <p>
+                        <p>Se ha detectado : </p>
+                        <center><h1 style='font-size: 2rem;'>{detection[detection_code]}</h1></center>
                         <p>
                             <div>
                                 <table border='1' align='center'>
@@ -117,9 +119,9 @@ def get_body_mail_event_happen(detection_code : str, detection_info : dict, num_
                                     </tr>
                                     <tr>
                                         <th>{detection_info['id']}</th>
-                                        <th>{detection_info['date_connection']}</th>
-                                        <th>{detection_info['time_connection']}</th>
-                                        <th>{detection_info['link']}</th>
+                                        <th>{detection_info['date_detection']}</th>
+                                        <th>{detection_info['time_detection']}</th>
+                                        <th><a href=\"{detection_info['link']}\">En vivo</a></th>
                                     </tr>
                                 </table>
                             </div>
