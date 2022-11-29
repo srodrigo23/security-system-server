@@ -42,5 +42,11 @@ def get_receiver_mail():
 def get_stream_enabled():
     return parser.getboolean('stream', 'enabled')
 
-def get_detectors_enabled():
-    return parser.getboolean('detectors', 'enabled')
+def get_fire_detector_status():
+    return parser.getboolean('detectors', 'fire')
+
+def get_motion_detector_status():
+    return parser.getboolean('detectors', 'motion')
+
+def get_people_detector_status():
+    return parser.getboolean('detectors', 'people')

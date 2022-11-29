@@ -1,4 +1,7 @@
 
+# https: // stackoverflow.com/questions/920910/sending-multipart-html-emails-which-contain-embedded-images
+# page for emmbebed images on mail
+
 title = """<p style = 'font-weight: bold; font-size: large; text-align: center; font-size: 2rem;'>
                 SISTEMA DE VIDEO VIGILANCIA INTELIGENTE \"LIVE EYE SMART\"
             </p>"""

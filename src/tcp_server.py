@@ -10,8 +10,9 @@ host = s.get_host()
 port = int(s.get_port())
 database = None # global
 stream_enabled = s.get_stream_enabled()
-detectors_enabled = s.get_detectors_enabled()
-
+status_fire_detector = s.get_fire_detector_status()
+status_motion_detector = s.get_motion_detector_status()
+status_people_detector = s.get_people_detector_status()
 
 class TCPServer:
 
@@ -37,7 +38,10 @@ class TCPServer:
             self.socket.listen(10)
             print_log('i', f"Serving on : {host}; on port : {port}")
             print_log('i', f"Streaming enabled : {stream_enabled}")
-            print_log('i', f"Detectors enabled : {detectors_enabled}")
+            print_log('i', f"Fire detector enabled : {status_fire_detector}")
+            print_log('i', f"People detector enabled : {status_people_detector}")
+            print_log('i', f"Motion detector enabled : {status_motion_detector}")
+            
         except skt.error as e:
             print(str(e))
             

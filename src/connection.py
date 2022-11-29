@@ -57,6 +57,10 @@ def log_new_camera(db_connection, cam_id, path) -> str:
     # print(f'this is the Id_camera_db {id_camera_db}')
     return id_camera_db
 
+status_fire_detector = s.get_fire_detector_status()
+status_motion_detector = s.get_motion_detector_status()
+status_people_detector = s.get_people_detector_status()
+
 class Connection(Thread):
     
     def __init__(self, id_uuid4, connector, address, db_conn, tcp_server):
@@ -70,7 +74,7 @@ class Connection(Thread):
         
         self.stream_enabled = s.get_stream_enabled()
         self.stream_link = None
-        self.detectors_enabled = s.get_detectors_enabled()
+        
         
         self.define_storage_frames()
         self.define_storage_detections()
@@ -113,11 +117,13 @@ class Connection(Thread):
             
             self.init_process_sending_mail()
             
-            if self.detectors_enabled:
+            if status_fire_detector:
                 start_new_thread(fire_detector.detector, (self,))
-                start_new_thread(people_detector.detector, (self,))
+            if status_motion_detector:
                 start_new_thread(motion_detector.detector, (self,))
-
+            if status_people_detector:
+                start_new_thread(people_detector.detector, (self,))
+                
             vb = True
             while self.running:
                 try:
@@ -128,7 +134,8 @@ class Connection(Thread):
                     frame = self.frame_receiver.get_frame()
                     if frame is not None:
                         self.store_frame(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), get_current_time_string)
-                        if self.detectors_enabled:
+                        #TODO to improve
+                        if status_fire_detector or status_motion_detector or status_people_detector: 
                             cv2.imwrite(get_file_name(cap_folder_name, self.cam_id), frame)
                     else:
                         self.stop_connection()
@@ -195,12 +202,18 @@ class Connection(Thread):
         """
         Method to store frames in queue
         """
-        if self.detectors_enabled:
-            self.store_frame_in_queue(self.fire_detection_queue, frame, date_time)
-            self.store_frame_in_queue(self.people_detection_queue, frame, date_time)
-            self.store_frame_in_queue(self.motion_detection_queue, frame, date_time)
+        if status_fire_detector:
+            self.store_frame_in_queue(
+                self.fire_detection_queue, frame, date_time)
+        if status_motion_detector:
+            self.store_frame_in_queue(
+                self.motion_detection_queue, frame, date_time)
+        if status_people_detector:
+            self.store_frame_in_queue(
+                self.people_detection_queue, frame, date_time)
         if self.stream_enabled:
-            self.store_frame_in_queue(self.stream_queue, frame, date_time)
+            self.store_frame_in_queue(
+                self.stream_queue, frame, date_time)
 
     def store_frame_in_queue(self, queue, frame, date_time):
         """
@@ -214,9 +227,12 @@ class Connection(Thread):
         Method to define queues to store frames
         """
         from queue import Queue
-        if self.detectors_enabled:
-            self.fire_detection_queue = Queue(maxsize = 200)
+        
+        if status_fire_detector:
+            self.fire_detection_queue = Queue(maxsize=200)
+        if status_people_detector:
             self.people_detection_queue = Queue(maxsize = 200)
+        if status_motion_detector:
             self.motion_detection_queue = Queue(maxsize = 200)
         if self.stream_enabled:
             self.stream_queue = Queue(maxsize = 200)
@@ -225,9 +241,11 @@ class Connection(Thread):
         """
         Method to define detections store
         """
-        if self.detectors_enabled:
+        if status_fire_detector:
             self.fire_detections = []
+        if status_people_detector:
             self.people_detections = []
+        if status_motion_detector:
             self.motion_detections = []
 
     def save_caption(self, path,frame, label):
