@@ -13,6 +13,8 @@ class LiveStreaming(Thread):
     output : "../live2/hls_out.m3u8"
     format : 'hls'
     live_streamming(output = "../live2/hls_out.m3u8", format = 'hls')
+    
+    http://127.0.0.1:5000/5540408015/stream/hls-20221202-190046.m3u8
     """
     def __init__(self,
         source,
@@ -26,20 +28,21 @@ class LiveStreaming(Thread):
         self.source = source # origin to get frames to stream
         # "-resolution": "640x360", "-framerate": "60.0"
         stream_params = {
-            "-input_framerate": frame_rate, 
+            "-input_framerate": frame_rate,
             "-livestream": True,
             "-streams":
                 [
-            #         # {"-resolution": "1920x1080", "-video_bitrate": "4000k"}, # Stream1: 1920x1080 at 4000kbs bitrate
-            #         # {"-resolution": "1280x720", "-framerate": "30.0"}, # Stream2: 1280x720 at 30fps
+                    # {"-resolution": "1920x1080", "-video_bitrate": "4000k"}, # Stream1: 1920x1080 at 4000kbs bitrate
+                    # {"-resolution": "1280x720", "-framerate": "30.0"}, # Stream2: 1280x720 at 30fps
                     {
-                        "-resolution": "640x360", 
+                        "-resolution": "640x360",
                         "-framerate": "30.0"
-                    }  # Stream3: 640x360 at 60fps
+                    }
+                    # Stream3: 640x360 at 60fps
                 ]
         }
         self.streamer = StreamGear(
-            output=output_path,
+            output = output_path,
             format = output_format,
             **stream_params
         )
@@ -50,18 +53,19 @@ class LiveStreaming(Thread):
         Method that make stream from frames stored on every connection.
         """
         time.sleep(1)
-        while self.__stream__:
+        while self.stream:
             frame, date = self.source.get_frame()
             if frame is not None:
                 time.sleep(0.1)
                 frame = self.put_text(
                     self.source.get_camera_id(),
                     frame,
-                    get_date(),
+                    date,
                     get_time())
                 try:
                     self.streamer.stream(frame)
                 except Exception as error:
+                    self.stop_stream()
                     print_log('w', f"Interrupted transmission: {error}")
 
         print_log('i', "Stream terminated")
@@ -71,9 +75,9 @@ class LiveStreaming(Thread):
         """
         Method to stop streamming.
         """
-        self.__stream__ = False
+        self.stream = False
     
-    def put_text(self, id, frame, text_date, text_time)->None:
+    def put_text(self, cam_id, frame, text_date, text_time)->None:
         """
         Method to put text about cam id, time and date. 
         """
@@ -82,7 +86,7 @@ class LiveStreaming(Thread):
         color      = (255, 0, 0)
         thickness  = 2
         frame = cv2.putText(
-            frame, f"CAMERA : {id}", (20, 40), font,
+            frame, f"CAMERA : {cam_id}", (20, 40), font,
             font_scale, color, thickness, cv2.LINE_AA
         )
         frame = cv2.putText(

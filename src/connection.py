@@ -23,6 +23,7 @@ from util.date import get_current_time_string
 from util.date import get_date
 from util.date import get_time
 from util.directory import delete_dir
+from util.directory import join_path
 from folder_methods import create_media_dir_tree_to_new_connection
 
 status_fire_detector   = s.get_fire_detector_status()
@@ -42,19 +43,11 @@ class Connection(Thread):
         self.running    = True
         self.server     = tcp_server # reference
         self.stream_link = None
+        self.cam_id     = None
         self.define_storage_frames()
         self.define_storage_detections()
         
-        # stream_link = f'localhost:5000/{cam_id}/stream/index.h3m8'
-    # def prepare_stream(self, camera_path:str, cam_id:str, path_to_stream:str) -> str:
-    #     stream_link = ''
-    #     if stream_enabled:
-    #         live_streaming = LiveStreaming(self, to_stream, 'hls', 10)
-    #         live_streaming.start()
-    #         stream_link = f'localhost:5000/{cam_id}/stream/index.h3m8'
-    #     return stream_link
-    
-    def start_stream(self, path_folder_to_stream) -> None:
+    def start_stream(self, cam_id, path_folder_to_stream) -> None:
         """
         Method to stream video
         """
@@ -67,6 +60,7 @@ class Connection(Thread):
                 frame_rate=1
             )
             live_streaming.start()
+            self.stream_link = f"http://127.0.0.1:5000/{cam_id}/stream/index.m3u8"
         return live_streaming
     
     def start_detectors(self,
@@ -106,6 +100,7 @@ class Connection(Thread):
         Main execution
         """
         cam_id = self.connector.recv(4096).decode()
+        self.cam_id = cam_id
         if not self.server.is_connected(cam_id):
             self.init_new_connection(
                 cam_id=cam_id
@@ -118,42 +113,39 @@ class Connection(Thread):
                 stream_folder_name="stream",
                 captures_folder_name="captures"
             )
-            print(paths)
+            path_to_stream = join_path(
+                paths[0],
+                s.get_index_stream_file_name()
+            )
             stream_thread = self.start_stream(
-                path_folder_to_stream=paths[0]
+                cam_id=cam_id,
+                path_folder_to_stream=path_to_stream
             )
             self.start_detectors(
                 path_fire_detections=paths[1],
                 path_motion_detections=paths[2],
                 path_people_detections=paths[3],
             )
-            self.send_notif_connection(cam_id=cam_id, running=self.running) #connected
+            self.send_notif_connection(  # connected
+                cam_id=cam_id,
+                running=self.running
+            )
             self.loop_process(
                 cam_id=cam_id,
                 frame_receiver_thread=frame_receiver,
                 stream_thread=stream_thread
             )
-            self.send_notif_connection(cam_id=cam_id, running=self.running) #disconnected
+            self.send_notif_connection(  # disconnected
+                cam_id=cam_id,
+                running=self.running
+            )
+            delete_dir(paths[4])
         else:
-            self.running = False
             self.connector.send(b'ID Camera repeated.')
-        self.connector.close() #close connection
-        
-        if self.stream_enabled:
-            self.live_streaming.stop_stream()
-            delete_dir(path_this_camera)
-    
-    def send_sending_mail_with_thread(self) -> None:
-        """
-        Start thread to send event mail.
-        """
-        thread = Thread(
-            target=self.send_mail_notification_connection,
-            args=(
-                self.cam_id,
-                self.running,
-                f"{self.stream_link if self.stream_enabled else ''}"))
-        thread.start()
+            # self.connector.close() #close connection
+        # if self.stream_enabled:
+        #     self.live_streaming.stop_stream()
+        #     delete_dir(path_this_camera)
 
     def loop_process(self, cam_id, frame_receiver_thread, stream_thread) -> None:
         """
@@ -192,7 +184,6 @@ class Connection(Thread):
     def send_notif_connection(self, cam_id:str, running:bool)-> None:
         """
         Method to send mail when connect/disconnect a camera
-        # link=f'http://{link_stream}' if (running and link_stream != '') else '',
         """
         mail_controller.send_mail_camera_event_connection(
             camera_info={
@@ -279,31 +270,27 @@ class Connection(Thread):
         if status_motion_detector:
             self.motion_detections = []
 
-    def save_caption(self, path,frame, label):
-        pass
+    # def send_event_notif(self, folder_captures_name:str, detection_name:str):
+    #     pass
 
-    def save_and_mail(self, folder_name):
-        pass
+    # def put_fire_detection(self, frame):
+    #     len_list = len(self.fire_detections)
+    #     if len_list > 20:
+    #         to_save = self.fire_detections[0::int(len_list / 5)]
+    #         # self.fire_detections[]
+    #         self.save_and_mail('fire')
 
-    def put_fire_detection(self, frame):
-        len_list = len(self.fire_detections)
-        if len_list > 20:
-            to_save = self.fire_detections[0::int(len_list / 5)]
-            # self.fire_detections[]
-            self.save_and_mail('fire')
+    # def put_people_detection(self, frame):
+    #     len_list = len(self.people_detections)
+    #     if len_list > 20:
+    #         to_save = self.fire_detections[0::int(len_list / 5)]
+    #         self.save_and_mail('people')
     
-
-    def put_people_detection(self, frame):
-        len_list = len(self.people_detections)
-        if len_list > 20:
-            to_save = self.fire_detections[0::int(len_list / 5)]
-            self.save_and_mail('people')
-    
-    def put_motion_detection(self, frame):
-        len_list = len(self.motion_detections)
-        if len_list > 20:
-            to_save = self.fire_detections[0::int(len_list / 5)]
-            self.save_and_mail('motion')
+    # def put_motion_detection(self, frame):
+    #     len_list = len(self.motion_detections)
+    #     if len_list > 20:
+    #         to_save = self.fire_detections[0::int(len_list / 5)]
+    #         self.save_and_mail('motion')
         
     def get_frame(self, objetive='stream'):
         """

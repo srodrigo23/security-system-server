@@ -1,3 +1,6 @@
+"""
+Methods to interact os directory skills
+"""
 import os
 import shutil
 
@@ -12,7 +15,7 @@ def join_path(parent_path, path):
 def make_dir(path):
     """ Method to create a dir """
     os.mkdir(path)
-    
+
 def delete_dir(path):
     """ Method to delete a directory that keep streaimg files. """
     try:
@@ -26,4 +29,7 @@ def get_root_path():
     return os.getcwd()
 
 def go_up():
+    """
+    Method to go up on the directory
+    """
     os.chdir('..')
