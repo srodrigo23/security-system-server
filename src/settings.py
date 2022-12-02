@@ -1,3 +1,6 @@
+"""
+Methods to get config values
+"""
 from configparser import ConfigParser
 
 parser = ConfigParser()

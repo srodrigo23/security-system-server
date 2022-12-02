@@ -17,8 +17,8 @@ def delete_dir(path):
     """ Method to delete a directory that keep streaimg files. """
     try:
         shutil.rmtree(path)
-    except OSError as e:
-        print(f"Error deleting: {e.filename} - {e.strerror}.")
+    except OSError as error:
+        print(f"Error deleting: {error.filename} - {error.strerror}.")
 
 def get_root_path():
     """ Method to get current current work dir from caller. """

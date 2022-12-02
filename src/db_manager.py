@@ -83,7 +83,7 @@ def select_cameras_by_id_camera(conn, id_camera):
 def select_logs_by_id_camera(conn, id_camera):
     """ Query tasks by priority param conn: the Connection object. """
     cur = conn.cursor()
-    cur.execute("SELECT * FROM log WHERE id_camera=?", (id_camera,))
+    cur.execute("SELECT * FROM log WHERE camera_id=?", (id_camera,))
     rows = cur.fetchall()
     return rows
 
@@ -93,3 +93,6 @@ def select_events_by_id_camera(conn, id_camera):
     cur.execute("SELECT * FROM cameras WHERE id_camera=?", (id_camera,))
     rows = cur.fetchall()
     return rows
+
+def get_available_cams(conn):
+    ans = select_all_cameras()

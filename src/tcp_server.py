@@ -1,61 +1,73 @@
+"""
+Code to run a server to manage socket connections
+"""
+import socket as skt
+import uuid
+import settings as s
+
 from util.logger import print_log
 from connection import Connection
-from db_manager import create_database
 
-import socket as skt
-import settings as s
-import uuid
+HOST = s.get_host()
+PORT = int(s.get_port())
 
-host = s.get_host()
-port = int(s.get_port())
-database = None # global
-stream_enabled = s.get_stream_enabled()
+status_stream = s.get_stream_enabled()
 status_fire_detector = s.get_fire_detector_status()
 status_motion_detector = s.get_motion_detector_status()
 status_people_detector = s.get_people_detector_status()
+NUMBER_CONNECTIONS = 10
 
 class TCPServer:
-
+    """
+    Server to manage socket connections
+    """
     def __init__(self):
         """
         Method to init a TCPServer class from host and port.
         """ 
-        self.socket = None 
+        self.socket             = None
         self.tcp_server_running = True
-        self.connections = {} # to store every Connection object
-        self.id_cameras = set()     # id cameras
+        self.connections        = {}    # to store every Connection object
+        self.id_cameras         = set() # id cameras
         
     def prepare_server(self):
         """
         Method to prepare TCPServer from host and port to store connection object referencies.
         """
+        print_log('i', "****** Welcome to the TCP-Server ******")
         try:
-            global database
-            print_log('i', "****** Welcome to the TCP-Server ******")
-            database = create_database()
             self.socket = skt.socket(skt.AF_INET, skt.SOCK_STREAM)
-            self.socket.bind((host, port))
-            self.socket.listen(10)
-            print_log('i', f"Serving on : {host}; on port : {port}")
-            print_log('i', f"Streaming enabled : {stream_enabled}")
-            print_log('i', f"Fire detector enabled : {status_fire_detector}")
-            print_log('i', f"People detector enabled : {status_people_detector}")
-            print_log('i', f"Motion detector enabled : {status_motion_detector}")
-            
-        except skt.error as e:
-            print(str(e))
-            
+            self.socket.bind((HOST, PORT))
+            self.socket.listen(NUMBER_CONNECTIONS)
+            self.show_initial_status()
+        except skt.error as error:
+            print(str(error))
+    
+    def show_initial_status(self) -> None:
+        """
+        Show on console initial server status
+        """
+        print_log('i', f"Serving on : {HOST} on port : {PORT}")
+        print_log('i', f"Fire detector enabled   : {status_fire_detector}")
+        print_log('i', f"People detector enabled : {status_people_detector}")
+        print_log('i', f"Motion detector enabled : {status_motion_detector}")
+        print_log('i', f"Streaming enabled       : {status_stream}")
+    
     def run(self):
         """
         Method to keep alive waiting to more connections.
         """
-        global database
         print_log('i', "Listen connections : ")
         while self.tcp_server_running:
             try:
                 connector, address = self.socket.accept()
                 ident = uuid.uuid4()
-                self.connections[ident] = Connection(ident, connector, address, database, self)
+                self.connections[ident] = Connection(
+                    id_uuid4=ident,
+                    connector=connector,
+                    address=address,
+                    tcp_server=self
+                )
                 self.connections[ident].start()
             except KeyboardInterrupt:
                 self.tcp_server_running = False
@@ -90,7 +102,7 @@ class TCPServer:
         cont=0
         for connection in self.connections.values():
             if connection.running:
-                cont = cont + 1 
+                cont = cont + 1
         print_log('i', f'Number of Connections : {cont}')
 
     def delete_id_camera(self, id_camera):
@@ -99,3 +111,4 @@ class TCPServer:
         """
         if id_camera in self.id_cameras:
             self.id_cameras.remove(id_camera)
+            
