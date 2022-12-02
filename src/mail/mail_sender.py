@@ -5,12 +5,12 @@ from os.path import basename
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
-from email.mime.base import MIMEBase
+# from email.mime.application import MIMEApplication
+# from email.mime.base import MIMEBase
 
-import settings as s
 import smtplib
-import ssl
+# import ssl
+import settings as s
 
 SUBJECT       = "Live Eye Smart Report"
 PORT          = int(s.get_email_port())
@@ -26,8 +26,9 @@ def send_mail(mail_body : str, attachments=None):
     mail_sender = MailSender()
     mail_sender.prepare_server()
     mail = mail_sender.prepare_mail(
-        mail_body=mail_body, 
-        attachments=attachments)
+        mail_body=mail_body,
+        attachments=attachments
+    )
     mail_sender.send_mail(mail.as_string())
     
 class MailSender:
