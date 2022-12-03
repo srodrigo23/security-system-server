@@ -18,12 +18,12 @@ def create_media_dir_tree_to_new_connection(
     fire_detections_folder_name     = "fire_detections"
     movement_detections_folder_name = "movement_detections"
     human_detections_folder_name    = "human_detections"
+    # go_up()
     root_path = get_root_path()
     media_path = join_path(
         root_path,
         media_folder_name
     )
-    # go_up()
     if not is_dir(media_path):
         make_dir(media_path)
     cam_media_path = join_path(

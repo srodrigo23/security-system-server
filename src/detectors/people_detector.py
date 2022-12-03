@@ -1,14 +1,19 @@
+"""
+Method to people detection
+"""
+import time
 import numpy as np
 import cv2
-import time
 from util.logger import print_log
 
 def detector(connection):
-    '''
+    """
     Method to people detection
-    '''
+    """
     hog = cv2.HOGDescriptor()
-    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+    hog.setSVMDetector(
+        cv2.HOGDescriptor_getDefaultPeopleDetector()
+    )
     print_log('i', f"People detection on camera: { connection.cam_id }")
     while connection.running:
         time.sleep(0.1)
@@ -22,7 +27,6 @@ def detector(connection):
             # for (x, y, w, h) in boxes:
             #     cv2.rectangle(frame, (x, y), (w, h), (0, 255, 0), 2)
     print_log('i', f"Finishing people detection on camera: { connection.cam_id }")
-
 
 # class PeopleDetector(Thread):
 #     def __init__(self, connection):

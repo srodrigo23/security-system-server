@@ -1,15 +1,18 @@
+"""
+Class to receive frames from socket connection
+"""
 from threading import Thread
-
-import sys
 import struct
 import pickle
 import cv2
 
 class FramesReceiver(Thread):
-    
+    """
+    Thread class to frames receiver
+    """
     def __init__(self, connection):
         Thread.__init__(self)
-        self.data = b"" 
+        self.data = b""
         self.payload_size = struct.calcsize(">L")
         self.conn = connection
         self.running = True
@@ -39,8 +42,8 @@ class FramesReceiver(Thread):
                     self.data += data
                 else:
                     self.stop_connection()
-            except Exception as e: 
-                print(f"{e} error in get message size")   
+            except Exception as e:
+                print(f"{e} error in get message size")
                 self.stop_connection()
         if self.running:
             packed_msg_size = self.data[:self.payload_size] # receive image row data form client socket
@@ -80,3 +83,4 @@ class FramesReceiver(Thread):
         Method to stop frame receiver loop.
         """
         self.running = False
+        

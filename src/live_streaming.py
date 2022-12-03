@@ -10,11 +10,7 @@ from util.date import get_date, get_time
 
 class LiveStreaming(Thread):
     """
-    output : "../live2/hls_out.m3u8"
-    format : 'hls'
-    live_streamming(output = "../live2/hls_out.m3u8", format = 'hls')
-    
-    http://127.0.0.1:5000/5540408015/stream/hls-20221202-190046.m3u8
+    Class for live streamming
     """
     def __init__(self,
         source,

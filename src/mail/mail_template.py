@@ -7,13 +7,17 @@ title = """<p style = 'font-weight: bold; font-size: large; text-align: center; 
             </p>"""
 
 def get_body_mail_camera_connected(camera_data: dict, status: bool, link: str, other_cams:list) -> str:
-    
     table_other_cams = ''
     if len(other_cams) > 0:
         rows  = ""
         for cam in other_cams:
-            rows += f"<tr><td>{cam['id']}</td><td>{cam['time_connection']}</td><td>{cam['date_connection']}</td><td><a href=\"{cam['link']}\">En vivo</a></td></tr>"
-            
+            rows += f"""
+            <tr>
+                <td>{cam['id']}</td>
+                <td>{cam['time_connection']}</td>
+                <td>{cam['date_connection']}</td>
+                <td><a href=\"{cam['link']}\">En vivo</a></td>
+            </tr>"""
         table_other_cams = f"""
             <table border='1' align='center'>
                 <tr>
@@ -77,21 +81,18 @@ def get_body_mail_camera_connected(camera_data: dict, status: bool, link: str, o
     return template
 
 def get_body_mail_event_happen(detection_code : str, detection_info : dict, num_pics_ad:int) -> str:
-    
     colors = {
         'fire': '#F1948A',
         'movement': '#D6EAF8',
         'human_siluhete': '#F5EEF8',
         'smoke': '#E5E7E9',
     }
-    
     detection = {
         'fire': 'Fuego',
         'movement': 'Movimiento',
         'human_siluhete': 'Intruso',
         'smoke': 'Humo',
     }
-    
     # icons={
     #     'fire': "https://cdn.cdnlogo.com/logos/p/6/psg.svg",
     #     # 'fire': 'tcpserver/src/mail/img/fire.png',
@@ -102,8 +103,7 @@ def get_body_mail_event_happen(detection_code : str, detection_info : dict, num_
     # <!-- < p >
     #     <img src = '{#icons[detection_code]}' alt = '{detection[detection_code]}' >
     # <p>-->
-    
-    template = f""" 
+    template = f"""
             <html>
                 <body>
                     <div style='background-color:{colors[detection_code]};

@@ -35,15 +35,17 @@ class Connection(Thread):
     """
     Thread for each connection
     """
-    def __init__(self, id_uuid4, connector, address, tcp_server):
+    def __init__(self, id_uuid4, connector, address, time_info, tcp_server):
         Thread.__init__(self)
         self.uuid       = id_uuid4
         self.connector  = connector
         self.addr       = address
         self.running    = True
         self.server     = tcp_server # reference
+        self.time_info  = time_info
         self.stream_link = None
         self.cam_id     = None
+        self.stream_thread = None
         self.define_storage_frames()
         self.define_storage_detections()
         
@@ -117,7 +119,7 @@ class Connection(Thread):
                 paths[0],
                 s.get_index_stream_file_name()
             )
-            stream_thread = self.start_stream(
+            self.stream_thread = self.start_stream(
                 cam_id=cam_id,
                 path_folder_to_stream=path_to_stream
             )
@@ -131,9 +133,8 @@ class Connection(Thread):
                 running=self.running
             )
             self.loop_process(
-                cam_id=cam_id,
-                frame_receiver_thread=frame_receiver,
-                stream_thread=stream_thread
+                # cam_id=self.uuid,
+                frame_receiver_thread=frame_receiver
             )
             self.send_notif_connection(  # disconnected
                 cam_id=cam_id,
@@ -142,12 +143,13 @@ class Connection(Thread):
             delete_dir(paths[4])
         else:
             self.connector.send(b'ID Camera repeated.')
-            # self.connector.close() #close connection
+            self.connector.close() #close connection
+            self.running = False
         # if self.stream_enabled:
         #     self.live_streaming.stop_stream()
         #     delete_dir(path_this_camera)
 
-    def loop_process(self, cam_id, frame_receiver_thread, stream_thread) -> None:
+    def loop_process(self, frame_receiver_thread) -> None:
         """
         Core method to receive frames and stream and detections
         """
@@ -176,9 +178,9 @@ class Connection(Thread):
                         #     frame
                         # )
                 else:
-                    self.stop_connection(cam_id, stream_thread)
+                    self.stop_connection()
             except KeyboardInterrupt:
-                self.stop_connection(cam_id, stream_thread)
+                self.stop_connection()
                 print_log('i', "Connection Closed")
     
     def send_notif_connection(self, cam_id:str, running:bool)-> None:
@@ -188,27 +190,27 @@ class Connection(Thread):
         mail_controller.send_mail_camera_event_connection(
             camera_info={
                 'id': cam_id,
-                'time_connection': get_time(),
-                'date_connection': get_date()
+                'time_connection': self.time_info[0],
+                'date_connection': self.time_info[1]
             },
             status=running,
             link=self.stream_link,
-            other_cams=[]
+            other_cams=self.server.get_connections_info(actual_cam_id=cam_id)
         )
         print_log(
             'i',
             f"{'Mail sended : Connected cam.'if running else'Mail Sended : Disconnected cam.'}"
         )
 
-    def stop_connection(self, cam_id:str, stream_thread)->None:
+    def stop_connection(self)->None:
         """
         Method to stop connection
         """
         self.running = False
         print_log('i', "Connection Closed")
         if stream_enabled:
-            stream_thread.stop_stream()
-        self.server.delete_id_camera(cam_id)
+            self.stream_thread.stop_stream()
+        self.server.delete_id_camera(self.cam_id)
         self.server.print_number_of_connections()
     
     def store_frame(self, frame, date_time):

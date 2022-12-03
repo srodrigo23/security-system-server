@@ -7,6 +7,7 @@ import settings as s
 
 from util.logger import print_log
 from connection import Connection
+from util.date import get_date, get_time
 
 HOST = s.get_host()
 PORT = int(s.get_port())
@@ -66,6 +67,7 @@ class TCPServer:
                     id_uuid4=ident,
                     connector=connector,
                     address=address,
+                    time_info=(get_date(),get_time()),
                     tcp_server=self
                 )
                 self.connections[ident].start()
@@ -85,6 +87,10 @@ class TCPServer:
         Check if id_camera is already in actual connections.
         """
         return id_camera in self.id_cameras
+        # for key in self.connections:
+        #     if self.connections[key].cam_id == id_camera:
+        #         return True
+        # return False
 
     def stop_all_connections(self):
         """
@@ -111,4 +117,21 @@ class TCPServer:
         """
         if id_camera in self.id_cameras:
             self.id_cameras.remove(id_camera)
-            
+    
+    def get_connections_info(self, actual_cam_id:str)->list:
+        """
+        Method to get get connections info
+        """
+        cams_info = []
+        if len(self.connections):
+            for key in self.connections:
+                actual_thread = self.connections[key]
+                if actual_thread.get_camera_id() != actual_cam_id and\
+                    actual_thread.running:
+                    cams_info.append({
+                        'id': actual_thread.get_camera_id(),
+                        'time_connection' : actual_thread.time_info[0],
+                        'date_connection': actual_thread.time_info[1],
+                        'link': actual_thread.stream_link,
+                    })
+        return cams_info

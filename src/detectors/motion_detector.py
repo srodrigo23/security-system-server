@@ -1,15 +1,17 @@
-import cv2 
+"""
+Motion detection
+"""
 import time
-import pandas
-from datetime import datetime
+# from datetime import datetime
+import cv2
+# import pandas
 from util.logger import print_log
 
 def detector(connection):
-    '''
+    """
     Method to motion detection
-    '''
+    """
     static_back = None
-   
     print_log('i', f"Motion detection on camera: { connection.cam_id }")
     while connection.running:
         time.sleep(0.1)
@@ -34,7 +36,6 @@ def detector(connection):
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
             if len(cnts) > 0:
                 connection.motion_detections.append(frame)
-            
     print_log('i', f"Finishing motion detection on camera: { connection.cam_id }")
 
 # class MotionDetector(Thread):    
