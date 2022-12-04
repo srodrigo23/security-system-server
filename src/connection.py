@@ -145,9 +145,6 @@ class Connection(Thread):
             self.connector.send(b'ID Camera repeated.')
             self.connector.close() #close connection
             self.running = False
-        # if self.stream_enabled:
-        #     self.live_streaming.stop_stream()
-        #     delete_dir(path_this_camera)
 
     def loop_process(self, frame_receiver_thread) -> None:
         """
@@ -182,6 +179,8 @@ class Connection(Thread):
             except KeyboardInterrupt:
                 self.stop_connection()
                 print_log('i', "Connection Closed")
+        if stream_enabled:
+            self.stream_thread.stop_stream()
     
     def send_notif_connection(self, cam_id:str, running:bool)-> None:
         """
@@ -275,24 +274,24 @@ class Connection(Thread):
     # def send_event_notif(self, folder_captures_name:str, detection_name:str):
     #     pass
 
-    # def put_fire_detection(self, frame):
-    #     len_list = len(self.fire_detections)
-    #     if len_list > 20:
-    #         to_save = self.fire_detections[0::int(len_list / 5)]
-    #         # self.fire_detections[]
-    #         self.save_and_mail('fire')
+    def put_fire_detection(self, frame):
+        len_list = len(self.fire_detections)
+        if len_list > 20:
+            to_save = self.fire_detections[0::int(len_list / 5)]
+            # self.fire_detections[]
+            self.save_and_mail('fire')
 
-    # def put_people_detection(self, frame):
-    #     len_list = len(self.people_detections)
-    #     if len_list > 20:
-    #         to_save = self.fire_detections[0::int(len_list / 5)]
-    #         self.save_and_mail('people')
+    def put_people_detection(self, frame):
+        len_list = len(self.people_detections)
+        if len_list > 20:
+            to_save = self.fire_detections[0::int(len_list / 5)]
+            self.save_and_mail('people')
     
-    # def put_motion_detection(self, frame):
-    #     len_list = len(self.motion_detections)
-    #     if len_list > 20:
-    #         to_save = self.fire_detections[0::int(len_list / 5)]
-    #         self.save_and_mail('motion')
+    def put_motion_detection(self, frame):
+        len_list = len(self.motion_detections)
+        if len_list > 20:
+            to_save = self.fire_detections[0::int(len_list / 5)]
+            self.save_and_mail('motion')
         
     def get_frame(self, objetive='stream'):
         """
