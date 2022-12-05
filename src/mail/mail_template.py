@@ -84,14 +84,12 @@ def get_body_mail_event_happen(detection_code : str, detection_info : dict, num_
     colors = {
         'fire': '#F1948A',
         'movement': '#D6EAF8',
-        'human_siluhete': '#F5EEF8',
-        'smoke': '#E5E7E9',
+        'people': '#F5EEF8',
     }
     detection = {
         'fire': 'Fuego',
         'movement': 'Movimiento',
-        'human_siluhete': 'Intruso',
-        'smoke': 'Humo',
+        'people': 'Intruso',
     }
     # icons={
     #     'fire': "https://cdn.cdnlogo.com/logos/p/6/psg.svg",

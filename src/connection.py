@@ -24,6 +24,7 @@ from util.date import get_date
 from util.date import get_time
 from util.directory import delete_dir
 from util.directory import join_path
+from util.directory import get_list_files
 from folder_methods import create_media_dir_tree_to_new_connection
 from folder_methods import make_file_detection_name
 
@@ -266,11 +267,17 @@ class Connection(Thread):
 
     def send_event_notif(self,
         folder_captures_name:str,
-        detection_name:str)->None:
+        detection_name:str,
+        event_info:dict)->None:
         """
-        Send mail notification with captures
+        Send mail notification with captures,
         """
-        return
+        attachments = get_list_files(folder_captures_name)
+        mail_controller.send_mail_camera_event_detection(
+            detection_code=detection_name,
+            detection_info=event_info,  # dict about event
+            attachments=attachments
+        )
 
     def make_fire_detection(self, path_to_detections:str) -> None:
         """
@@ -285,9 +292,16 @@ class Connection(Thread):
                 detections=to_save,
                 folder_path=path_to_detections
             )
-            # self.send_event_notif(
-            #     folder_captures_name=path_to_detections,
-            #     detection_name=event)
+            self.send_event_notif(
+                folder_captures_name=path_to_detections,
+                detection_name=event,
+                event_info={
+                    'id': self.cam_id,
+                    'time_detection': get_time(),
+                    'date_detection': get_date(),
+                    'link': self.stream_link
+                }
+            )
             self.fire_detections = []
 
     def make_people_detection(self, path_to_detections: str) -> None:
@@ -302,9 +316,16 @@ class Connection(Thread):
             self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections)
-            # self.send_event_notif(
-            #     folder_captures_name=path_to_detections,
-            #     detection_name=event)
+            self.send_event_notif(
+                folder_captures_name=path_to_detections,
+                detection_name=event,
+                event_info={
+                    'id': self.cam_id,
+                    'time_detection': get_time(),
+                    'date_detection': get_date(),
+                    'link': self.stream_link
+                }
+            )
             self.people_detections = []
     
     def make_motion_detection(self, path_to_detections: str) -> None:
@@ -319,9 +340,16 @@ class Connection(Thread):
             self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections)
-            # self.send_event_notif(
-            #     folder_captures_name=path_to_detections,
-            #     detection_name=event)
+            self.send_event_notif(
+                folder_captures_name=path_to_detections,
+                detection_name=event,
+                event_info={
+                    'id': self.cam_id,
+                    'time_detection': get_time(),
+                    'date_detection': get_date(),
+                    'link': self.stream_link
+                }
+            )
             self.motion_detections = []
         
     def get_frame(self, objetive='stream'):

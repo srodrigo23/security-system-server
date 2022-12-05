@@ -33,3 +33,6 @@ def go_up():
     Method to go up on the directory
     """
     os.chdir('..')
+
+def get_list_files(directory):
+    return os.listdir(directory)
