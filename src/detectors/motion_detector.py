@@ -2,9 +2,7 @@
 Motion detection
 """
 import time
-# from datetime import datetime
 import cv2
-# import pandas
 from util.logger import print_log
 
 def detector(connection):
@@ -15,7 +13,7 @@ def detector(connection):
     print_log('i', f"Motion detection on camera: { connection.cam_id }")
     while connection.running:
         time.sleep(0.1)
-        frame = connection.get_frame()
+        frame, label = connection.get_frame(objetive='motion_detector')
         if frame is not None:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (21, 21), 0)
@@ -23,7 +21,7 @@ def detector(connection):
                 static_back = gray
                 continue
             diff_frame = cv2.absdiff(static_back, gray)
-            # If change in between static background and current frame is 
+            # If change in between static background and current frame is
             # grather than 30 it will show white color(255)
             thresh_frame = cv2.threshold(diff_frame, 30, 255, cv2.THRESH_BINARY)[1]
             thresh_frame = cv2.dilate(thresh_frame, None, iterations=3)
@@ -35,7 +33,7 @@ def detector(connection):
                 # making green rectangle arround the moving object
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
             if len(cnts) > 0:
-                connection.motion_detections.append(frame)
+                connection.motion_detections.append((frame, label))
     print_log('i', f"Finishing motion detection on camera: { connection.cam_id }")
 
 # class MotionDetector(Thread):    

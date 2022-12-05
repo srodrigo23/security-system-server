@@ -16,7 +16,8 @@ motion_list = [None, None]
 df = pandas.DataFrame(columns=["Start", "End"])
 
 # Capturing video
-path = "../../media/video_movement1.mp4"
+path = "video/home.mp4"
+time.sleep(2)
 video = cv2.VideoCapture(path)
 
 # Infinite while loop to treat stack of image as video

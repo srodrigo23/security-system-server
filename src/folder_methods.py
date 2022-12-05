@@ -64,3 +64,9 @@ def create_media_dir_tree_to_new_connection(
         cam_media_captures_human_detections_path,
         cam_media_path
     )
+
+def make_file_detection_name(path:str, file_name)->str:
+    """
+    Make a file name detection
+    """
+    return join_path(path, file_name)

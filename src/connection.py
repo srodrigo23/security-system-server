@@ -25,6 +25,7 @@ from util.date import get_time
 from util.directory import delete_dir
 from util.directory import join_path
 from folder_methods import create_media_dir_tree_to_new_connection
+from folder_methods import make_file_detection_name
 
 status_fire_detector   = s.get_fire_detector_status()
 status_motion_detector = s.get_motion_detector_status()
@@ -45,7 +46,7 @@ class Connection(Thread):
         self.time_info  = time_info
         self.stream_link = None
         self.cam_id     = None
-        self.stream_thread = None
+        self.strea m_thread = None
         self.define_storage_frames()
         self.define_storage_detections()
         
@@ -133,8 +134,8 @@ class Connection(Thread):
                 running=self.running
             )
             self.loop_process(
-                # cam_id=self.uuid,
-                frame_receiver_thread=frame_receiver
+                frame_receiver_thread=frame_receiver,
+                paths_to_detections=paths
             )
             self.send_notif_connection(  # disconnected
                 cam_id=cam_id,
@@ -146,7 +147,9 @@ class Connection(Thread):
             self.connector.close() #close connection
             self.running = False
 
-    def loop_process(self, frame_receiver_thread) -> None:
+    def loop_process(self, 
+        frame_receiver_thread, 
+        paths_to_detections:list) -> None:
         """
         Core method to receive frames and stream and detections
         """
@@ -163,17 +166,7 @@ class Connection(Thread):
                         cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
                         get_current_time_string()
                     )
-                    if status_fire_detector    or\
-                        status_motion_detector or\
-                        status_people_detector:
-                        pass
-                        # cv2.imwrite(
-                        #     get_file_name(
-                        #         cap_folder_name,
-                        #         self.cam_id
-                        #     ),
-                        #     frame
-                        # )
+                    self.make_notification(paths=paths_to_detections)
                 else:
                     self.stop_connection()
             except KeyboardInterrupt:
@@ -271,27 +264,49 @@ class Connection(Thread):
         if status_motion_detector:
             self.motion_detections = []
 
-    # def send_event_notif(self, folder_captures_name:str, detection_name:str):
-    #     pass
+    def send_event_notif(self,
+        folder_captures_name:str,
+        detection_name:str)->None:
+        """
+        Send mail notification with captures
+        """
+        return
 
-    def put_fire_detection(self, frame):
-        len_list = len(self.fire_detections)
-        if len_list > 20:
+    def make_fire_detection(self, path_to_detections:str) -> None:
+        """
+        Store fire detection
+        """        
+        event='fire'
+        if len(self.fire_detections) > 30:
             to_save = self.fire_detections[0::int(len_list / 5)]
-            # self.fire_detections[]
-            self.save_and_mail('fire')
+            self.save_detections(
+                detections=to_save,
+                folder_path=path_to_detections)
+            self.send_event_notif(detection_name=event)
 
-    def put_people_detection(self, frame):
-        len_list = len(self.people_detections)
-        if len_list > 20:
+    def make_people_detection(self, path_to_detections: str) -> None:
+        """
+        Store people  detection
+        """
+        event = 'people'
+        if len(self.people_detections) > 30:
             to_save = self.fire_detections[0::int(len_list / 5)]
-            self.save_and_mail('people')
+            self.save_detections(
+                detections=to_save,
+                folder_path=path_to_detections)
+            self.send_event_notif(detection_name=event)
     
-    def put_motion_detection(self, frame):
-        len_list = len(self.motion_detections)
-        if len_list > 20:
+    def make_motion_detection(self, path_to_detections: str) -> None:
+        """
+        Store motion detection
+        """
+        event = 'motion'
+        if len(self.motion_detections) > 30:
             to_save = self.fire_detections[0::int(len_list / 5)]
-            self.save_and_mail('motion')
+            self.save_detections(
+                detections=to_save,
+                folder_path=path_to_detections)
+            self.send_event_notif(detection_name=event)
         
     def get_frame(self, objetive='stream'):
         """
@@ -306,8 +321,40 @@ class Connection(Thread):
         else:
             return self.stream_queue.get()
         
-    def get_camera_id(self):
+    def get_camera_id(self)->str:
         """
         Method to return camera id to show in the live streaming view
         """
         return self.cam_id
+
+    def make_notification(self, paths:list)->None:
+        """
+        Make a notification with some detections stored
+        """
+        if status_fire_detector:
+            self.make_fire_detection(
+                path_to_detections=paths[1]
+            )
+        if status_motion_detector:
+            self.make_motion_detection(
+                path_to_detections=paths[2]
+            )
+        if status_people_detector:
+            self.make_people_detection(
+                path_to_detections=paths[3]
+            )
+
+    def save_detections(self,
+            detections:list,#frames and labels 
+            folder_path:str) -> None:
+        """
+        Make detection picture and save on directory
+        """
+        for capture, label in detections:
+            cv2.imwrite(
+                make_file_detection_name(
+                    path=folder_path,
+                    file_name=label
+                ),
+                capture
+            )

@@ -6,14 +6,13 @@ import cv2
 from util.logger import print_log
 
 def detector(connection):
-    '''
+    """
     Method to a fire detection
-    '''
+    """
     fire_cascade = cv2.CascadeClassifier(
         'classifiers/fire_detection.xml'
     )
     print_log('i', f"Fire detection on camera: { connection.cam_id }")
-    # i=1
     while connection.running:
         time.sleep(0.1)
         frame, label = connection.get_frame(objetive='fire_detector')
@@ -30,3 +29,4 @@ def detector(connection):
             if len(fire) > 0:
                 connection.fire_detections.append((frame, label))
     print_log('i', f"Finishing fire detection on camera: { connection.cam_id }")
+    

@@ -7,8 +7,8 @@ import settings as s
 
 from util.logger import print_log
 from connection import Connection
-from util.date import get_date, get_time
-
+from util.date import get_date
+from util.date import get_time
 HOST = s.get_host()
 PORT = int(s.get_port())
 

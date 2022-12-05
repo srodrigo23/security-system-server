@@ -8,23 +8,23 @@ hog = cv2.HOGDescriptor()
 hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
 cv2.startWindowThread()
-video = '../../media/video_movement1.mp4'
+video = 'video/home.mp4'
 # open webcam video stream
 cap = cv2.VideoCapture(video)
 
 # the output will be written to output.avi
-out = cv2.VideoWriter(
-    'output.avi',
-    cv2.VideoWriter_fourcc(*'MJPG'),
-    15.,
-    (640, 480))
+# out = cv2.VideoWriter(
+#     'output.avi',
+#     cv2.VideoWriter_fourcc(*'MJPG'),
+#     15.,
+#     (640, 480))
 
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
 
     # resizing for faster detection
-    frame = cv2.resize(frame, (640, 480))
+    # frame = cv2.resize(frame, (640, 480))
     # using a greyscale picture, also for faster detection
     gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 
@@ -40,7 +40,7 @@ while(True):
                       (0, 255, 0), 2)
 
     # Write the output video
-    out.write(frame.astype('uint8'))
+    # out.write(frame.astype('uint8'))
     # Display the resulting frame
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):

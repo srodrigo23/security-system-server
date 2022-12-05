@@ -30,8 +30,9 @@ Fire_Reported = 0
 #     except Exception as e:
 #     	print(e)
 
-video_file = "../../media/fire1.mp4"
+video_file = "video/fire.mp4"
 video = cv2.VideoCapture(video_file) # If you want to use webcam use Index like 0,1.
+# video = cv2.VideoCapture(0)
 time.sleep(2)
 while True:
     (grabbed, frame) = video.read()
