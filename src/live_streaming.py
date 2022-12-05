@@ -6,7 +6,8 @@ import time
 from vidgear.gears import StreamGear
 import cv2
 from util.logger import print_log
-from util.date import get_date, get_time
+from util.date import get_date
+from util.date import get_time
 
 class LiveStreaming(Thread):
     """
@@ -93,3 +94,4 @@ class LiveStreaming(Thread):
             frame, f"TIME : {text_time}", (20, 100), font,
             font_scale, color, thickness, cv2.LINE_AA)
         return frame
+    

@@ -15,3 +15,4 @@ private-key.json
 config.ini
 database.db
 media/*
+*.jpeg
