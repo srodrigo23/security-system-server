@@ -83,12 +83,12 @@ def get_body_mail_camera_connected(camera_data: dict, status: bool, link: str, o
 def get_body_mail_event_happen(detection_code : str, detection_info : dict, num_pics_ad:int) -> str:
     colors = {
         'fire': '#F1948A',
-        'movement': '#D6EAF8',
+        'motion': '#D6EAF8',
         'people': '#F5EEF8',
     }
     detection = {
         'fire': 'Fuego',
-        'movement': 'Movimiento',
+        'motion': 'Movimiento',
         'people': 'Intruso',
     }
     # icons={

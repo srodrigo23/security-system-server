@@ -34,7 +34,9 @@ def detector(connection):
             #     # making green rectangle arround the moving object
             #     cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
             if len(cnts) > 0:
+                print_log('i', f"Motion detected: { connection.cam_id }")
                 connection.motion_detections.append((frame, label))
+
     print_log('i', f"Finishing motion detection on camera: { connection.cam_id }")
 
 # class MotionDetector(Thread):    

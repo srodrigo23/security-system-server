@@ -273,9 +273,10 @@ class Connection(Thread):
         Send mail notification with captures,
         """
         attachments = get_list_files(folder_captures_name)
+        print_log('i', f"Alert mail sended {detection_name}.")
         mail_controller.send_mail_camera_event_detection(
             detection_code=detection_name,
-            detection_info=event_info,  # dict about event
+            detection_info=event_info, #dict about event
             attachments=attachments
         )
 
@@ -285,9 +286,9 @@ class Connection(Thread):
         """
         event='fire'
         len_detections = len(self.fire_detections)
-        
-        if len_detections > 9:
+        if len_detections >= 10:
             to_save = self.fire_detections[0::int(len_detections/5)]
+            self.fire_detections = []
             self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections
@@ -302,7 +303,6 @@ class Connection(Thread):
                     'link': self.stream_link
                 }
             )
-            self.fire_detections = []
 
     def make_people_detection(self, path_to_detections: str) -> None:
         """
@@ -310,9 +310,32 @@ class Connection(Thread):
         """
         event = 'people'
         len_detections = len(self.people_detections)
-        if len_detections > 9:
-            to_save = self.people_detections[0::int(
-                len_detections/5)]
+        if len_detections >= 10:
+            to_save = self.people_detections[0::int(len_detections/5)]
+            self.people_detections = []
+            self.save_detections(
+                detections=to_save,
+                folder_path=path_to_detections)
+            self.send_event_notif(
+                folder_captures_name=path_to_detections,
+                detection_name=event,
+                event_info={
+                    'id': self.cam_id,
+                    'time_detection': get_time(),
+                    'date_detection': get_date(),
+                    'link': self.stream_link
+                }
+            )
+    
+    def make_motion_detection(self, path_to_detections: str) -> None:
+        """
+        Store motion detection
+        """
+        event = 'motion'
+        len_detections = len(self.motion_detections)
+        if len_detections >= 10:
+            to_save = self.motion_detections[0::int(len_detections/5)]
+            self.motion_detections = []
             self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections)
@@ -327,30 +350,6 @@ class Connection(Thread):
                 }
             )
             self.people_detections = []
-    
-    def make_motion_detection(self, path_to_detections: str) -> None:
-        """
-        Store motion detection
-        """
-        event = 'motion'
-        len_detections = len(self.motion_detections)
-        if len_detections > 30:
-            to_save = self.fire_detections[0::int(
-                len_detections/5)]
-            self.save_detections(
-                detections=to_save,
-                folder_path=path_to_detections)
-            self.send_event_notif(
-                folder_captures_name=path_to_detections,
-                detection_name=event,
-                event_info={
-                    'id': self.cam_id,
-                    'time_detection': get_time(),
-                    'date_detection': get_date(),
-                    'link': self.stream_link
-                }
-            )
-            self.motion_detections = []
         
     def get_frame(self, objetive='stream'):
         """

@@ -35,4 +35,7 @@ def go_up():
     os.chdir('..')
 
 def get_list_files(directory):
-    return os.listdir(directory)
+    # files=os.listdir(directory)
+    # for i in range(len(files)):
+    #     files[i] = join_path(directory, files[i])
+    return [join_path(directory, file) for file in os.listdir(directory)]

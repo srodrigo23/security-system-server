@@ -18,13 +18,14 @@ def detector(connection):
     time.sleep(2)
     while connection.running:
         time.sleep(0.1)
-        frame = connection.get_frame()
+        frame, label = connection.get_frame(objetive='people_detector')
         if frame is not None:
             gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
             boxes, weights = hog.detectMultiScale(gray, winStride=(8,8) )
             boxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in boxes])
             if len(boxes) > 0:
-                connection.people_detections.append(frame)
+                print_log('i', f"People detected: { connection.cam_id }")
+                connection.people_detections.append((frame, label))
             # for (x, y, w, h) in boxes:
             #     cv2.rectangle(frame, (x, y), (w, h), (0, 255, 0), 2)
     print_log('i', f"Finishing people detection on camera: { connection.cam_id }")
