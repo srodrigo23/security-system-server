@@ -69,4 +69,4 @@ def make_file_detection_name(path:str, file_name)->str:
     """
     Make a file name detection
     """
-    return join_path(path, file_name)
+    return join_path(path, file_name)+'.jpg'

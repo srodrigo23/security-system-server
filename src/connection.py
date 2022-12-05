@@ -42,11 +42,11 @@ class Connection(Thread):
         self.connector  = connector
         self.addr       = address
         self.running    = True
-        self.server     = tcp_server # reference
+        self.server     = tcp_server #reference
         self.time_info  = time_info
         self.stream_link = None
         self.cam_id     = None
-        self.strea m_thread = None
+        self.stream_thread = None
         self.define_storage_frames()
         self.define_storage_detections()
         
@@ -67,26 +67,30 @@ class Connection(Thread):
         return live_streaming
     
     def start_detectors(self,
-        path_fire_detections:str,
-        path_motion_detections: str,
-        path_people_detections: str) -> None:
+        # path_fire_detections:str,
+        # path_motion_detections: str,
+        # path_people_detections: str
+        ) -> None:
         """
         Method to start detectors by config
         """
         if status_fire_detector :
-            start_new_thread(
-                fire_detector.detector,
-                (self, path_fire_detections)
-            )
+            # start_new_thread(
+            #     fire_detector.detector,
+            #     (self,)
+            # )
+            thread = Thread(target=fire_detector.detector, args=(self,))
+            thread.start()
+            
         if status_motion_detector :
             start_new_thread(
                 motion_detector.detector,
-                (self, path_motion_detections)
+                (self,)
             )
         if status_people_detector :
             start_new_thread(
                 people_detector.detector,
-                (self,path_people_detections)
+                (self,)
             )
             
     def init_new_connection(self, cam_id:str) -> None:
@@ -124,12 +128,8 @@ class Connection(Thread):
                 cam_id=cam_id,
                 path_folder_to_stream=path_to_stream
             )
-            self.start_detectors(
-                path_fire_detections=paths[1],
-                path_motion_detections=paths[2],
-                path_people_detections=paths[3],
-            )
-            self.send_notif_connection(  # connected
+            self.start_detectors()
+            self.send_notif_connection( #connected
                 cam_id=cam_id,
                 running=self.running
             )
@@ -137,7 +137,7 @@ class Connection(Thread):
                 frame_receiver_thread=frame_receiver,
                 paths_to_detections=paths
             )
-            self.send_notif_connection(  # disconnected
+            self.send_notif_connection( #disconnected
                 cam_id=cam_id,
                 running=self.running
             )
@@ -147,8 +147,8 @@ class Connection(Thread):
             self.connector.close() #close connection
             self.running = False
 
-    def loop_process(self, 
-        frame_receiver_thread, 
+    def loop_process(self,
+        frame_receiver_thread,
         paths_to_detections:list) -> None:
         """
         Core method to receive frames and stream and detections
@@ -275,38 +275,52 @@ class Connection(Thread):
     def make_fire_detection(self, path_to_detections:str) -> None:
         """
         Store fire detection
-        """        
+        """
         event='fire'
-        if len(self.fire_detections) > 30:
-            to_save = self.fire_detections[0::int(len_list / 5)]
+        len_detections = len(self.fire_detections)
+        
+        if len_detections > 9:
+            to_save = self.fire_detections[0::int(len_detections/5)]
             self.save_detections(
                 detections=to_save,
-                folder_path=path_to_detections)
-            self.send_event_notif(detection_name=event)
+                folder_path=path_to_detections
+            )
+            # self.send_event_notif(
+            #     folder_captures_name=path_to_detections,
+            #     detection_name=event)
+            self.fire_detections = []
 
     def make_people_detection(self, path_to_detections: str) -> None:
         """
         Store people  detection
         """
         event = 'people'
-        if len(self.people_detections) > 30:
-            to_save = self.fire_detections[0::int(len_list / 5)]
+        len_detections = len(self.people_detections)
+        if len_detections > 30:
+            to_save = self.people_detections[0::int(
+                len_detections/5)]
             self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections)
-            self.send_event_notif(detection_name=event)
+            self.send_event_notif(
+                folder_captures_name=path_to_detections,
+                detection_name=event)
     
     def make_motion_detection(self, path_to_detections: str) -> None:
         """
         Store motion detection
         """
         event = 'motion'
-        if len(self.motion_detections) > 30:
-            to_save = self.fire_detections[0::int(len_list / 5)]
+        len_detections = len(self.motion_detections)
+        if len_detections > 30:
+            to_save = self.fire_detections[0::int(
+                len_detections/5)]
             self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections)
-            self.send_event_notif(detection_name=event)
+            self.send_event_notif(
+                folder_captures_name=path_to_detections,
+                detection_name=event)
         
     def get_frame(self, objetive='stream'):
         """
@@ -345,7 +359,7 @@ class Connection(Thread):
             )
 
     def save_detections(self,
-            detections:list,#frames and labels 
+            detections:list, #frames and labels
             folder_path:str) -> None:
         """
         Make detection picture and save on directory

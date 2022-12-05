@@ -3,9 +3,9 @@ import cv2
 import time
 # from playsound import playsound
 
-fire_cascade = cv2.CascadeClassifier('fire_detection.xml')
-# cap = cv2.VideoCapture('../../media/fire1.mp4')
-cap = cv2.VideoCapture(0)
+fire_cascade = cv2.CascadeClassifier('../../classifiers/fire_detection.xml')
+cap = cv2.VideoCapture('video/fire.mp4')
+# cap = cv2.VideoCapture(0)
 time.sleep(2)
 while(True):
     ret, frame = cap.read()
