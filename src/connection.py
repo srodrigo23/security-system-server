@@ -296,15 +296,16 @@ class Connection(Thread):
         """
         event = 'people'
         len_detections = len(self.people_detections)
-        if len_detections > 30:
+        if len_detections > 9:
             to_save = self.people_detections[0::int(
                 len_detections/5)]
             self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections)
-            self.send_event_notif(
-                folder_captures_name=path_to_detections,
-                detection_name=event)
+            # self.send_event_notif(
+            #     folder_captures_name=path_to_detections,
+            #     detection_name=event)
+            self.people_detections = []
     
     def make_motion_detection(self, path_to_detections: str) -> None:
         """
@@ -318,9 +319,10 @@ class Connection(Thread):
             self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections)
-            self.send_event_notif(
-                folder_captures_name=path_to_detections,
-                detection_name=event)
+            # self.send_event_notif(
+            #     folder_captures_name=path_to_detections,
+            #     detection_name=event)
+            self.motion_detections = []
         
     def get_frame(self, objetive='stream'):
         """

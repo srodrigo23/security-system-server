@@ -11,6 +11,7 @@ def detector(connection):
     """
     static_back = None
     print_log('i', f"Motion detection on camera: { connection.cam_id }")
+    time.sleep(2)
     while connection.running:
         time.sleep(0.1)
         frame, label = connection.get_frame(objetive='motion_detector')
@@ -27,11 +28,11 @@ def detector(connection):
             thresh_frame = cv2.dilate(thresh_frame, None, iterations=3)
             # Finding contour of moving object
             cnts, _ = cv2.findContours(thresh_frame.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            for contour in cnts:
-                if cv2.contourArea(contour) < 1000: continue
-                (x, y, w, h) = cv2.boundingRect(contour)
-                # making green rectangle arround the moving object
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
+            # for contour in cnts:
+            #     if cv2.contourArea(contour) < 1000: continue
+            #     (x, y, w, h) = cv2.boundingRect(contour)
+            #     # making green rectangle arround the moving object
+            #     cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
             if len(cnts) > 0:
                 connection.motion_detections.append((frame, label))
     print_log('i', f"Finishing motion detection on camera: { connection.cam_id }")

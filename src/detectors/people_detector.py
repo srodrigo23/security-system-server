@@ -15,6 +15,7 @@ def detector(connection):
         cv2.HOGDescriptor_getDefaultPeopleDetector()
     )
     print_log('i', f"People detection on camera: { connection.cam_id }")
+    time.sleep(2)
     while connection.running:
         time.sleep(0.1)
         frame = connection.get_frame()
