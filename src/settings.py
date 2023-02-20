@@ -53,3 +53,15 @@ def get_motion_detector_status():
 
 def get_people_detector_status():
     return parser.getboolean('detectors', 'people')
+
+def get_twilio_account_sid():
+    return parser.get('twilio', 'account_sid')
+
+def get_twilio_token():
+    return parser.get('twilio', 'auth_token')
+
+def get_phone_number_notificator():
+    return parser.get('twilio', 'phone_number_notificator')
+
+def get_phone_number_client():
+    return parser.get('twilio', 'phone_number_client')

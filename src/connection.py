@@ -1,5 +1,5 @@
 """
-Method ans classes to make connection
+Thread Class to define a new connection
 """
 from threading import Thread
 from _thread import start_new_thread
@@ -17,6 +17,7 @@ from detectors import motion_detector
 from live_streaming import LiveStreaming
 from frames_receiver import FramesReceiver
 from mail import mail_controller
+from whatsapp import whatsapp_controller
 
 from util.logger import print_log
 from util.date import get_current_time_string
@@ -194,6 +195,8 @@ class Connection(Thread):
             'i',
             f"{'Mail sended : Connected cam.'if running else'Mail Sended : Disconnected cam.'}"
         )
+        whatsapp_controller.send_message_event_camera_connected()
+
 
     def stop_connection(self)->None:
         """

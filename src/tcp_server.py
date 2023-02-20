@@ -16,6 +16,7 @@ status_stream = s.get_stream_enabled()
 status_fire_detector = s.get_fire_detector_status()
 status_motion_detector = s.get_motion_detector_status()
 status_people_detector = s.get_people_detector_status()
+whatsapp_phone_number = s.get_phone_number_client()
 NUMBER_CONNECTIONS = 10
 
 class TCPServer:
@@ -49,10 +50,11 @@ class TCPServer:
         Show on console initial server status
         """
         print_log('i', f"Serving on : {HOST} on port : {PORT}")
-        print_log('i', f"Fire detector enabled   : {status_fire_detector}")
-        print_log('i', f"People detector enabled : {status_people_detector}")
-        print_log('i', f"Motion detector enabled : {status_motion_detector}")
-        print_log('i', f"Streaming enabled       : {status_stream}")
+        print_log('i', f"Fire detector enabled    : {status_fire_detector}")
+        print_log('i', f"People detector enabled  : {status_people_detector}")
+        print_log('i', f"Motion detector enabled  : {status_motion_detector}")
+        print_log('i', f"Streaming enabled        : {status_stream}")
+        print_log('i', f"Whatsapp number to notif : {whatsapp_phone_number}")
     
     def run(self):
         """
