@@ -16,3 +16,4 @@ config.ini
 database.db
 media/*
 *.jpeg
+credentials.json
