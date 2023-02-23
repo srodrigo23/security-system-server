@@ -15,7 +15,7 @@ def send_message(message_body:str)->None:
         body=message_body,
         # media_url='https://raw.githubusercontent.com/dianephan/flask_upload_photos/main/UPLOADS/DRAW_THE_OWL_MEME.png',
         # media_url='https://ik.imagekit.io/srodrigo23/test/241188806_1013240782576434_1846265590439094677_n.jpg?ik-sdk-version=javascript-1.4.3&updatedAt=1676909762705',
-        # media_url='https://drive.google.com/file/d/1kLSdvKFK2ePVUiYH2iXtsTG6FnNhBH0e/view?usp=sharing',
+        # media_url='https://drive.google.com/file/d/1kLSdvKFK2ePVUiYH2iXtsTG6FnNhBH0e/view?usp=sharing', drive don't works
         from_=from_whatsapp_number,
         to=to_whatsapp_number
     )
