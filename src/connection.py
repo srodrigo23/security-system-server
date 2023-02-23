@@ -181,21 +181,30 @@ class Connection(Thread):
         """
         Method to send mail when connect/disconnect a camera
         """
+        camera_info={
+            'id': cam_id,
+            'time_connection': self.time_info[0],
+            'date_connection': self.time_info[1]
+        }
         mail_controller.send_mail_camera_event_connection(
-            camera_info={
-                'id': cam_id,
-                'time_connection': self.time_info[0],
-                'date_connection': self.time_info[1]
-            },
+            camera_info=camera_info,
             status=running,
             link=self.stream_link,
             other_cams=self.server.get_connections_info(actual_cam_id=cam_id)
         )
         print_log(
             'i',
-            f"{'Mail sended : Connected cam.'if running else'Mail Sended : Disconnected cam.'}"
+            f"{'Mail Sended : Connected camera'if running else'Mail Sended : Disconnected camera'}"
         )
-        whatsapp_controller.send_message_event_camera_connected()
+        whatsapp_controller.send_message_event_camera_connection(
+            camera_info=camera_info, 
+            status=running,
+            link=self.stream_link
+        )
+        print_log(
+            'i',
+            f"{'WhatsApp Message Sended : Connected camera'if running else'WhatsApp Message Sended : Disconnected camera'}"
+        )
 
 
     def stop_connection(self)->None:

@@ -69,7 +69,7 @@ class TCPServer:
                     id_uuid4=ident,
                     connector=connector,
                     address=address,
-                    time_info=(get_date(),get_time()),
+                    time_info=(get_time(),get_date()),
                     tcp_server=self
                 )
                 self.connections[ident].start()
