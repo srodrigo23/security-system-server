@@ -3,58 +3,52 @@ import base64
 import os
 import sys
 
+
+class Struct:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+def get_options(destiny_path:str) -> Struct:
+    args = {
+        'folder' : destiny_path,#"/example-folder/",
+        "response_fields" : ["is_private_file", "custom_metadata", "tags"],
+        'is_private_file' : False,
+        'tags' : ["tag1", "tag2"],
+        'webhook_url' : "url",
+        'overwrite_file' : False,
+        'overwrite_ai_tags': False,
+        'overwrite_tags' : False,
+        'overwrite_custom_metadata' : True,
+        # 'custom_metadata' : {"test": 11}
+    }
+    options = Struct(**args)
+    return options
+
+
+def upload_file_to_imagekit_io(image:base64,options: Struct) -> dict:
+    upload = imagekit.upload_file(
+        file=image,
+        file_name="yo mismo.jpeg",
+        options=options
+    )
+    return upload.response_metadata.raw
+    # print("Upload base64", upload)
+    # print(upload.response_metadata.raw)    # Raw Response
+    # print(upload.file_id) # print that uploaded file's ID
+    # print(upload.version_info.id)# print that uploaded file's version ID
+
+
 imagekit = ImageKit(
     private_key='private_EAScro9GeDSdJ1MGxeeri3wXvhU=',
     public_key='public_qWBbQ8R24wygLI12rWcAScJmoKc=',
     url_endpoint = 'https://ik.imagekit.io/srodrigo23/'
 )
 
-with open("./src/storage/imagekit/me.jpeg", mode="rb") as img:
-    imgstr = base64.b64encode(img.read())
+images = ["./src/storage/imagekit/me.jpeg", "./src/storage/imagekit/rodrigo.jpg"]
 
-class UploadFileRequestOptions:
-
-    def __init__(self,folder) -> None:
-        self.folder = folder
-        pass
-    
-    
-upload = imagekit.upload_file(
-    file=imgstr,
-    file_name="yo mismo.jpeg",
-    options=UploadFileRequestOptions(
-            folder ="/example-folder/",
-            # response_fields = ["is_private_file", "custom_metadata", "tags"],
-            # is_private_file = False,
-            # tags = ["tag1", "tag2"],
-            # webhook_url = "url",
-            # overwrite_file = False,
-            # overwrite_ai_tags = False,
-            # overwrite_tags = False,
-            # overwrite_custom_metadata = True,
-            # custom_metadata = {"test": 11}
-        )
-    )
-    # {
-        # "folder" : "/example-folder/",
-        # 'response_fields' :["is_private_file", "custom_metadata", "tags"],
-        # 'is_private_file' : False,
-        # 'tags' : ["tag1", "tag2"],
-        # 'webhook_url' : "url",
-        # 'overwrite_file' : False,
-        # 'overwrite_ai_tags' : False,
-        # 'overwrite_tags' : False,
-        # 'overwrite_custom_metadata' : True,
-        # 'custom_metadata' : {"test": 11}
-    # }
-
-
-
-
-print("Upload base64", upload)
-# Raw Response
-print(upload.response_metadata.raw)
-# print that uploaded file's ID
-print(upload.file_id)
-# print that uploaded file's version ID
-print(upload.version_info.id)
+for image in images:
+    # image = "./src/storage/imagekit/me.jpeg"
+    with open(image, mode="rb") as img:
+        imgstr = base64.b64encode(img.read())    
+    image_uploaded_data = upload_file_to_imagekit_io(image=imgstr,options=get_options(destiny_path='/chibolas'))
+    print(image_uploaded_data['url'])
