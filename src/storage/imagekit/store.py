@@ -46,9 +46,13 @@ imagekit = ImageKit(
 
 images = ["./src/storage/imagekit/me.jpeg", "./src/storage/imagekit/rodrigo.jpg"]
 
-for image in images:
-    # image = "./src/storage/imagekit/me.jpeg"
-    with open(image, mode="rb") as img:
-        imgstr = base64.b64encode(img.read())    
-    image_uploaded_data = upload_file_to_imagekit_io(image=imgstr,options=get_options(destiny_path='/chibolas'))
-    print(image_uploaded_data['url'])
+
+def upload_files(file_paths:list)->list:
+    imagekit_io_url_list = []
+    for image_file in file_paths:
+        # image = "./src/storage/imagekit/me.jpeg"
+        with open(image_file, mode="rb") as img:
+            imgstr = base64.b64encode(img.read())    
+        image_uploaded_data = upload_file_to_imagekit_io(image=imgstr,options=get_options(destiny_path='/chibolas'))
+        imagekit_io_url_list.append(image_uploaded_data['url'])
+    return imagekit_io_url_list
