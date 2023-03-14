@@ -28,6 +28,7 @@ from util.directory import join_path
 from util.directory import get_list_files
 from folder_methods import create_media_dir_tree_to_new_connection
 from folder_methods import make_file_detection_name
+from storage.imagekit.store import upload_file
 
 status_fire_detector   = s.get_fire_detector_status()
 status_motion_detector = s.get_motion_detector_status()
@@ -292,6 +293,13 @@ class Connection(Thread):
             attachments=attachments
         )
 
+    def send_whatsapp_event_notif(self, url_list:list, event:str)->None:
+        for url in url_list:
+            whatsapp_controller.send_message_event_detection(
+                type_detection=event,
+                media_url=url
+            )
+
     def make_fire_detection(self, path_to_detections:str) -> None:
         """
         Store fire detection
@@ -301,11 +309,11 @@ class Connection(Thread):
         if len_detections >= 10:
             to_save = self.fire_detections[0::int(len_detections/5)]
             self.fire_detections = []
-            self.save_detections(
+            url_detections = self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections
             )
-            self.send_event_notif(
+            self.send_event_notif( #mail
                 folder_captures_name=path_to_detections,
                 detection_name=event,
                 event_info={
@@ -315,6 +323,11 @@ class Connection(Thread):
                     'link': self.stream_link
                 }
             )
+            self.send_whatsapp_event_notif(
+                event="fire",
+                url_list=url_detections
+            )
+
 
     def make_people_detection(self, path_to_detections: str) -> None:
         """
@@ -325,7 +338,7 @@ class Connection(Thread):
         if len_detections >= 10:
             to_save = self.people_detections[0::int(len_detections/5)]
             self.people_detections = []
-            self.save_detections(
+            url_detections = self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections)
             self.send_event_notif(
@@ -337,6 +350,10 @@ class Connection(Thread):
                     'date_detection': get_date(),
                     'link': self.stream_link
                 }
+            )
+            self.send_whatsapp_event_notif(
+                event="people",
+                url_list=url_detections
             )
     
     def make_motion_detection(self, path_to_detections: str) -> None:
@@ -348,7 +365,7 @@ class Connection(Thread):
         if len_detections >= 10:
             to_save = self.motion_detections[0::int(len_detections/5)]
             self.motion_detections = []
-            self.save_detections(
+            url_detections = self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections)
             self.send_event_notif(
@@ -361,7 +378,11 @@ class Connection(Thread):
                     'link': self.stream_link
                 }
             )
-            self.people_detections = []
+            # self.people_detections = []
+            self.send_whatsapp_event_notif(
+                event="people",
+                url_list=url_detections
+            )
         
     def get_frame(self, objetive='stream'):
         """
@@ -401,15 +422,24 @@ class Connection(Thread):
 
     def save_detections(self,
             detections:list, #frames and labels
-            folder_path:str) -> None:
+            folder_path:str) -> list:
         """
         Make detection picture and save on directory
         """
+        # import os
+        url_detections=[]
         for capture, label in detections:
-            cv2.imwrite(
-                make_file_detection_name(
-                    path=folder_path,
-                    file_name=label
-                ),
-                capture
+            file_name = make_file_detection_name(
+                path=folder_path,
+                file_name=label
             )
+            cv2.imwrite(filename=file_name,img=capture)
+            # path_to_file = os.path.join(folder_path, file_name)
+            data_image_uploaded = upload_file(
+                image_file=file_name, 
+                file_label=label,
+                
+                path_to_upload=folder_path
+            )
+            url_detections.append(data_image_uploaded['url'])
+        return url_detections

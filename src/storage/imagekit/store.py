@@ -25,10 +25,10 @@ def get_options(destiny_path:str) -> Struct:
     return options
 
 
-def upload_file_to_imagekit_io(image:base64,options: Struct) -> dict:
+def upload_file_to_imagekit_io(image:base64, file_name:str, options: Struct) -> dict:
     upload = imagekit.upload_file(
         file=image,
-        file_name="yo mismo.jpeg",
+        file_name=file_name,
         options=options
     )
     return upload.response_metadata.raw
@@ -47,12 +47,17 @@ imagekit = ImageKit(
 images = ["./src/storage/imagekit/me.jpeg", "./src/storage/imagekit/rodrigo.jpg"]
 
 
-def upload_files(file_paths:list)->list:
-    imagekit_io_url_list = []
-    for image_file in file_paths:
+def upload_file(image_file, file_label:str, path_to_upload:str)->dict:
+    # imagekit_io_url_list = []
+    # for image_file in file_paths:
         # image = "./src/storage/imagekit/me.jpeg"
-        with open(image_file, mode="rb") as img:
-            imgstr = base64.b64encode(img.read())    
-        image_uploaded_data = upload_file_to_imagekit_io(image=imgstr,options=get_options(destiny_path='/chibolas'))
-        imagekit_io_url_list.append(image_uploaded_data['url'])
-    return imagekit_io_url_list
+    with open(image_file, mode="rb") as img:
+        imgstr = base64.b64encode(img.read())
+    image_uploaded_data = upload_file_to_imagekit_io(
+        image=imgstr,
+        file_name=file_label,
+        options=get_options(destiny_path=path_to_upload)
+    )
+    # imagekit_io_url_list.append(image_uploaded_data['url'])
+    # return imagekit_io_url_list
+    return image_uploaded_data
