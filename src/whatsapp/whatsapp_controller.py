@@ -1,15 +1,17 @@
 from .whatsapp_sender import send_textual_message, send_media_message
 
-def send_message_event_camera_connection(camera_info:dict, status:bool, link:None)->None:
+def send_message_event_camera_connection(camera_info:dict, status:bool, link:bool)->None:
     from .message_templates import new_camera_connected, camera_disconnected
     if status:
+        textual_message = new_camera_connected(
+            cam_id=camera_info['id'],
+            time=camera_info['time_connection'],
+            date=camera_info['date_connection'],
+            link=link
+        )
         send_textual_message(
-            message_body=new_camera_connected(
-                cam_id=camera_info['id'],
-                time=camera_info['time_connection'],
-                date=camera_info['date_connection'],
-                link=link)
-            )
+            message_body=textual_message
+        )
     else:
         send_textual_message(
             message_body=camera_disconnected(
@@ -26,7 +28,7 @@ def send_message_event_detection(type_detection:str, media_url:str)->None:
 
     if type_detection == "fire":
         send_media_message(
-            message_body=fire_detection, 
+            message_body=fire_detection(), 
             media_url=media_url
         )
     elif type_detection == "motion":

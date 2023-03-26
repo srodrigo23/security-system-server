@@ -66,7 +66,7 @@ class FramesReceiver(Thread):
                     else:
                         self.stop_connection()
                 except Exception as e:
-                    print(f"{e} error in read frame")   
+                    print(f"{e} error in read frame")    
                     self.stop_connection()
             if self.running:
                 frame_data = self.data[:msg_size]

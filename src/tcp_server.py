@@ -7,8 +7,8 @@ import settings as s
 
 from util.logger import print_log
 from connection import Connection
-from util.date import get_date
-from util.date import get_time
+# from util.date import get_date
+# from util.date import get_time
 HOST = s.get_host()
 PORT = int(s.get_port())
 
@@ -69,7 +69,7 @@ class TCPServer:
                     id_uuid4=ident,
                     connector=connector,
                     address=address,
-                    time_info=(get_time(),get_date()),
+                    # time_info=(get_time(),get_date()),
                     tcp_server=self
                 )
                 self.connections[ident].start()

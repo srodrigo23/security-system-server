@@ -35,6 +35,4 @@ def send_media_message(message_body:str, media_url:str) -> None:
         from_=from_whatsapp_number,
         to=to_whatsapp_number
     )
-    # print(message.sid)
-
-
+    # print(message.sid)./

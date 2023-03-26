@@ -39,16 +39,17 @@ class Connection(Thread):
     """
     Thread for each connection
     """
-    def __init__(self, id_uuid4, connector, address, time_info, tcp_server):
+    def __init__(self, id_uuid4, connector, address, tcp_server):
         Thread.__init__(self)
         self.uuid       = id_uuid4
         self.connector  = connector
         self.addr       = address
         self.running    = True
         self.server     = tcp_server #reference
-        self.time_info  = time_info
+        # self.time_info  = time_info
+        # self.stream_link = None if stream_enabled is False else f"http://127.0.0.1:5000/{cam_id}/stream/index.m3u8"
         self.stream_link = None
-        self.cam_id     = None
+        self.cam_id = None
         self.stream_thread = None
         self.define_storage_frames()
         self.define_storage_detections()
@@ -184,8 +185,8 @@ class Connection(Thread):
         """
         camera_info={
             'id': cam_id,
-            'time_connection': self.time_info[0],
-            'date_connection': self.time_info[1]
+            'time_connection': get_time(),#self.time_info[0],
+            'date_connection': get_date(),#self.time_info[1]
         }
         mail_controller.send_mail_camera_event_connection(
             camera_info=camera_info,
@@ -197,16 +198,16 @@ class Connection(Thread):
             'i',
             f"{'Mail Sended : Connected camera'if running else'Mail Sended : Disconnected camera'}"
         )
+        
         whatsapp_controller.send_message_event_camera_connection(
-            camera_info=camera_info, 
+            camera_info=camera_info,
             status=running,
-            link=self.stream_link
+            link= True if self.stream_link is not None else False
         )
         print_log(
             'i',
             f"{'WhatsApp Message Sended : Connected camera'if running else'WhatsApp Message Sended : Disconnected camera'}"
         )
-
 
     def stop_connection(self)->None:
         """
