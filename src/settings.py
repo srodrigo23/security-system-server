@@ -65,3 +65,12 @@ def get_phone_number_notificator():
 
 def get_phone_number_client():
     return parser.get('twilio', 'phone_number_client')
+
+def get_imagekit_private_key():
+    return parser.get('imagekit', 'private_key')
+
+def get_imagekit_public_key():
+    return parser.get('imagekit', 'public_key')
+
+def get_imagekit_url_endpoint():
+    return parser.get('imagekit', 'url_endpoint')

@@ -1,9 +1,13 @@
 from imagekitio import ImageKit
 import base64
-import os
-import sys
+# import os
+# import sys
 
+import settings as s
 
+# print(s.get_imagekit_private_key())
+# print(s.get_imagekit_public_key())
+# print(s.get_imagekit_url_endpoint())
 class Struct:
     def __init__(self, **entries):
         self.__dict__.update(entries)
@@ -39,9 +43,9 @@ def upload_file_to_imagekit_io(image:base64, file_name:str, options: Struct) -> 
 
 
 imagekit = ImageKit(
-    private_key='private_EAScro9GeDSdJ1MGxeeri3wXvhU=',
-    public_key='public_qWBbQ8R24wygLI12rWcAScJmoKc=',
-    url_endpoint = 'https://ik.imagekit.io/srodrigo23/'
+    private_key=s.get_imagekit_private_key(), #'private_EAScro9GeDSdJ1MGxeeri3wXvhU=',
+    public_key=s.get_imagekit_public_key(),#'public_qWBbQ8R24wygLI12rWcAScJmoKc=',
+    url_endpoint=s.get_imagekit_url_endpoint()#'https://ik.imagekit.io/srodrigo23/'
 )
 
 images = ["./src/storage/imagekit/me.jpeg", "./src/storage/imagekit/rodrigo.jpg"]

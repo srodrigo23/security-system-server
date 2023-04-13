@@ -66,14 +66,16 @@ class FramesReceiver(Thread):
                     else:
                         self.stop_connection()
                 except Exception as e:
-                    print(f"{e} error in read frame")    
+                    print(f"{e} error in read frame")
                     self.stop_connection()
             if self.running:
                 frame_data = self.data[:msg_size]
                 self.data = self.data[msg_size:]
-                frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes") 
+                frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
+                # print('llega aqui')
                 return cv2.imdecode(frame, cv2.IMREAD_COLOR)
-            else: 
+            else:
+                print("Returning none")
                 return None
         else:
             return None

@@ -85,17 +85,17 @@ class Connection(Thread):
             # )
             thread = Thread(target=fire_detector.detector, args=(self,))
             thread.start()
-            
         if status_motion_detector :
-            start_new_thread(
-                motion_detector.detector,
-                (self,)
-            )
+            thread = Thread(target=motion_detector.detector, args=(self,))
+            thread.start()
+            # start_new_thread(motion_detector.detector,(self,))
         if status_people_detector :
-            start_new_thread(
-                people_detector.detector,
-                (self,)
-            )
+            thread = Thread(target=people_detector.detector, args=(self,))
+            thread.start()
+            # start_new_thread(
+            #     people_detector.detector,
+            #     (self,)
+            # )
             
     def init_new_connection(self, cam_id:str) -> None:
         """
@@ -151,12 +151,11 @@ class Connection(Thread):
             self.connector.close() #close connection
             self.running = False
 
-    def loop_process(self,
-        frame_receiver_thread,
-        paths_to_detections:list) -> None:
+    def loop_process(self, frame_receiver_thread, paths_to_detections:list) -> None:
         """
         Core method to receive frames and stream and detections
         """
+        cont =0
         _vb_ = True
         while self.running:
             try:
@@ -166,12 +165,15 @@ class Connection(Thread):
                 time.sleep(0.1)
                 frame = frame_receiver_thread.get_frame()
                 if frame is not None:
+                    cont=cont+1
+                    # print(frame)
                     self.store_frame(
-                        cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
-                        get_current_time_string()
+                        frame=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
+                        date_time=get_current_time_string()
                     )
                     self.make_notification(paths=paths_to_detections)
                 else:
+                    print('paro!!')
                     self.stop_connection()
             except KeyboardInterrupt:
                 self.stop_connection()
@@ -381,7 +383,7 @@ class Connection(Thread):
             )
             # self.people_detections = []
             self.send_whatsapp_event_notif(
-                event="people",
+                event="motion",
                 url_list=url_detections
             )
         
@@ -421,9 +423,7 @@ class Connection(Thread):
                 path_to_detections=paths[3]
             )
 
-    def save_detections(self,
-            detections:list, #frames and labels
-            folder_path:str) -> list:
+    def save_detections(self, detections:list, folder_path:str) -> list:
         """
         Make detection picture and save on directory
         """
@@ -439,7 +439,6 @@ class Connection(Thread):
             data_image_uploaded = upload_file(
                 image_file=file_name, 
                 file_label=label,
-                
                 path_to_upload=folder_path
             )
             url_detections.append(data_image_uploaded['url'])

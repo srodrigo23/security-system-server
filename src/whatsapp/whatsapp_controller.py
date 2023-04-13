@@ -28,7 +28,7 @@ def send_message_event_detection(type_detection:str, media_url:str)->None:
 
     if type_detection == "fire":
         send_media_message(
-            message_body=fire_detection(), 
+            message_body=fire_detection,
             media_url=media_url
         )
     elif type_detection == "motion":
