@@ -173,7 +173,7 @@ class Connection(Thread):
                     )
                     self.make_notification(paths=paths_to_detections)
                 else:
-                    print('paro!!')
+                    # print('paro!!')
                     self.stop_connection()
             except KeyboardInterrupt:
                 self.stop_connection()
