@@ -110,6 +110,8 @@ class Controller:
         self.server_controller.set_view(view=view.control_panel)
 
 
+from tcp_server import TCPServer
+from threading import Thread
 
 class ServerController():
 
@@ -129,3 +131,20 @@ class ServerController():
             print('encender')
             self.view.swith_server_button.config(text="Server Off")
             self.is_on = True
+
+            # self.tcp_server = TCPServer()
+            # self.tcp_server.prepare_server()
+            # self.tcp_server.run()
+            # import multiprocessing
+            # proc = multiprocessing.Process( self.tcp_server.run(), () )
+            # proc.start()
+
+            self.thread = Thread(
+                target=self.tcp_server.run(),
+                args=()
+            )
+            self.thread.daemon=True
+            self.thread.start()
+            # print('llega aqui')
+    
+    
