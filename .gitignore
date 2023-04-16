@@ -10,9 +10,9 @@ video
 *.ts
 *.mp4
 private-key.json
-*.ini
+# *.ini
 
-config.ini
+# config.ini
 database.db
 media/*
 *.jpeg
