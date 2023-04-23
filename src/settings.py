@@ -77,16 +77,24 @@ def get_imagekit_url_endpoint():
 
 def set_stream_enabled(enabled:str) -> None:
     parser.set('stream', 'enabled', enabled)
+    with open(r"../config.ini", 'w') as configfile:
+        parser.write(configfile)
     # return parser.getboolean('stream', 'enabled')
 
 def set_fire_detector_status(enabled:str) -> None:
     parser.set('detectors', 'fire', enabled)
+    with open(r"../config.ini", 'w') as configfile:
+        parser.write(configfile)
     # return parser.getboolean('detectors', 'fire')
 
 def set_motion_detector_status(enabled:str )-> None:
     parser.set('detectors', 'motion', enabled)
+    with open(r"../config.ini", 'w') as configfile:
+        parser.write(configfile)
     # return parser.getboolean('detectors', 'motion')
 
 def set_people_detector_status(enabled:str) -> None:
     parser.set('detectors', 'people', enabled)
+    with open(r"../config.ini", 'w') as configfile:
+        parser.write(configfile)
     # return parser.getboolean('detectors', 'people')
