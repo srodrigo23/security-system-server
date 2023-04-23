@@ -32,7 +32,7 @@ def detector(connection):
                 if cv2.contourArea(contour) < 1000: continue
                 (x, y, w, h) = cv2.boundingRect(contour)
                 # making green rectangle arround the moving object
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
             if len(cnts) > 0:
                 print_log('i', f"Motion detected: { connection.cam_id }")
                 connection.motion_detections.append((frame, label))
