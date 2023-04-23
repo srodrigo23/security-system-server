@@ -30,10 +30,6 @@ from folder_methods import create_media_dir_tree_to_new_connection
 from folder_methods import make_file_detection_name
 from storage.imagekit.store import upload_file
 
-status_fire_detector   = s.get_fire_detector_status()
-status_motion_detector = s.get_motion_detector_status()
-status_people_detector = s.get_people_detector_status()
-stream_enabled         = s.get_stream_enabled()
 
 class Connection(Thread):
     """
@@ -51,6 +47,12 @@ class Connection(Thread):
         self.stream_link = None
         self.cam_id = None
         self.stream_thread = None
+
+        self.status_fire_detector   = s.get_fire_detector_status()
+        self.status_motion_detector = s.get_motion_detector_status()
+        self.status_people_detector = s.get_people_detector_status()
+        self.stream_enabled         = s.get_stream_enabled()
+
         self.define_storage_frames()
         self.define_storage_detections()
         
@@ -59,7 +61,7 @@ class Connection(Thread):
         Method to stream video
         """
         live_streaming = None
-        if stream_enabled:
+        if self.stream_enabled:
             live_streaming = LiveStreaming(
                 source=self,
                 output_path=path_folder_to_stream,
@@ -78,17 +80,17 @@ class Connection(Thread):
         """
         Method to start detectors by config
         """
-        if status_fire_detector:
+        if self.status_fire_detector:
             fire_thread = Thread(target=fire_detector.detector, args=(self,))
             fire_thread.start()
             # fire_thread.join()
 
-        if status_motion_detector:
+        if self.status_motion_detector:
             motion_thread = Thread(target=motion_detector.detector, args=(self,))
             motion_thread.start()
             # motion_thread.join()
             
-        if status_people_detector:
+        if self.status_people_detector:
             people_thread = Thread(target=people_detector.detector, args=(self,))
             people_thread.start()
             # people_thread.join()
@@ -161,7 +163,7 @@ class Connection(Thread):
                 time.sleep(0.1)
                 frame = frame_receiver_thread.get_frame()
                 cont =cont+1
-                print(f'sigo recibiendo {cont}')
+                # print(f'sigo recibiendo {cont}')
                 if frame is not None:
                     cont=cont+1
                     # print(frame)
@@ -175,7 +177,7 @@ class Connection(Thread):
             except KeyboardInterrupt:
                 self.stop_connection()
                 print_log('i', "Connection Closed")
-        if stream_enabled:
+        if self.stream_enabled:
             self.stream_thread.stop_stream()
     
     def send_notif_connection(self, cam_id:str, running:bool)-> None:
@@ -226,7 +228,7 @@ class Connection(Thread):
         """
         self.running = False
         print_log('i', "Connection Closed")
-        if stream_enabled:
+        if self.stream_enabled:
             self.stream_thread.stop_stream()
         self.server.delete_id_camera(self.cam_id)
         self.server.print_number_of_connections()
@@ -235,25 +237,25 @@ class Connection(Thread):
         """
         Method to store frames in queue
         """
-        if status_fire_detector:
+        if self.status_fire_detector:
             self.store_frame_in_queue(
                 self.fire_detection_queue,
                 frame,
                 date_time
             )
-        if status_motion_detector:
+        if self.status_motion_detector:
             self.store_frame_in_queue(
                 self.motion_detection_queue,
                 frame,
                 date_time
             )
-        if status_people_detector:
+        if self.status_people_detector:
             self.store_frame_in_queue(
                 self.people_detection_queue,
                 frame,
                 date_time
             )
-        if stream_enabled:
+        if self.stream_enabled:
             self.store_frame_in_queue(
                 self.stream_queue, frame, date_time)
 
@@ -270,24 +272,24 @@ class Connection(Thread):
         """
         Method to define queues to store frames
         """
-        if status_fire_detector:
+        if self.status_fire_detector:
             self.fire_detection_queue = Queue(maxsize=200)
-        if status_people_detector:
+        if self.status_people_detector:
             self.people_detection_queue = Queue(maxsize = 200)
-        if status_motion_detector:
+        if self.status_motion_detector:
             self.motion_detection_queue = Queue(maxsize = 200)
-        if stream_enabled:
+        if self.stream_enabled:
             self.stream_queue = Queue(maxsize = 200)
     
     def define_storage_detections(self) -> None:
         """
         Method to define detections store
         """
-        if status_fire_detector:
+        if self.status_fire_detector:
             self.fire_detections = []
-        if status_people_detector:
+        if self.status_people_detector:
             self.people_detections = []
-        if status_motion_detector:
+        if self.status_motion_detector:
             self.motion_detections = []
 
     def send_event_notif(self,
@@ -422,15 +424,15 @@ class Connection(Thread):
         """
         Make a notification with some detections stored
         """
-        if status_fire_detector:
+        if self.status_fire_detector:
             self.make_fire_detection(
                 path_to_detections=paths[1]
             )
-        if status_motion_detector:
+        if self.status_motion_detector:
             self.make_motion_detection(
                 path_to_detections=paths[2]
             )
-        if status_people_detector:
+        if self.status_people_detector:
             self.make_people_detection(
                 path_to_detections=paths[3]
             )
