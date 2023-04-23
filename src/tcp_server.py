@@ -12,11 +12,7 @@ from connection import Connection
 HOST = s.get_host()
 PORT = int(s.get_port())
 
-status_stream = s.get_stream_enabled()
-status_fire_detector = s.get_fire_detector_status()
-status_motion_detector = s.get_motion_detector_status()
-status_people_detector = s.get_people_detector_status()
-whatsapp_phone_number = s.get_phone_number_client()
+
 NUMBER_CONNECTIONS = 10
 
 class TCPServer:
@@ -34,26 +30,43 @@ class TCPServer:
         self.define_server_mode(server_mode)
     
     def define_server_mode(self, actual_mode:str)-> None:
-        mode = actual_mode.lower()
-        if mode =="f":
-            s.set_fire_detector_status(enabled=True)
+        if actual_mode is not None:
+            mode = actual_mode.lower()
+            if mode =="f":
+                s.set_fire_detector_status(enabled="true")
 
-            s.set_motion_detector_status(enabled=False)
-            s.set_people_detector_status(enabled=False)
-            s.set_stream_enabled(enabled=False)
-        elif mode == "m":
-            s.set_motion_detector_status(enabled=True)
+                s.set_motion_detector_status(enabled="false")
+                s.set_people_detector_status(enabled="false")
+                s.set_stream_enabled(enabled="false")
+            elif mode == "m":
+                s.set_motion_detector_status(enabled="true")
 
-            s.set_fire_detector_status(enabled=False)
-            s.set_people_detector_status(enabled=False)
-            s.set_stream_enabled(enabled=False)
+                s.set_fire_detector_status(enabled="false")
+                s.set_people_detector_status(enabled="false")
+                s.set_stream_enabled(enabled="false")
 
-        elif mode == "p":
-            s.set_people_detector_status(enabled=True)
+            elif mode == "p":
+                s.set_people_detector_status(enabled="true")
 
-            s.set_motion_detector_status(enabled=False)
-            s.set_fire_detector_status(enabled=False)
-            s.set_stream_enabled(enabled=False)
+                s.set_motion_detector_status(enabled="false")
+                s.set_fire_detector_status(enabled="false")
+                s.set_stream_enabled(enabled="false")
+            
+            elif mode == "s":
+                s.set_stream_enabled(enabled="true")
+
+                s.set_people_detector_status(enabled="false")
+                s.set_motion_detector_status(enabled="false")
+                s.set_fire_detector_status(enabled="false")
+                
+        
+        self.status_stream = s.get_stream_enabled()
+        self.status_fire_detector = s.get_fire_detector_status()
+        self.status_motion_detector = s.get_motion_detector_status()
+        self.status_people_detector = s.get_people_detector_status()
+        self.whatsapp_phone_number = s.get_phone_number_client()
+
+
         
     def prepare_server(self):
         """
@@ -73,11 +86,11 @@ class TCPServer:
         Show on console initial server status
         """
         print_log('i', f"Serving on : {HOST} on port : {PORT}")
-        print_log('i', f"Fire detector enabled    : {status_fire_detector}")
-        print_log('i', f"People detector enabled  : {status_people_detector}")
-        print_log('i', f"Motion detector enabled  : {status_motion_detector}")
-        print_log('i', f"Streaming enabled        : {status_stream}")
-        print_log('i', f"Whatsapp number to notif : {whatsapp_phone_number}")
+        print_log('i', f"Fire detector enabled    : {self.status_fire_detector}")
+        print_log('i', f"People detector enabled  : {self.status_people_detector}")
+        print_log('i', f"Motion detector enabled  : {self.status_motion_detector}")
+        print_log('i', f"Streaming enabled        : {self.status_stream}")
+        print_log('i', f"Whatsapp number to notif : {self.whatsapp_phone_number}")
     
     def run(self):
         """
