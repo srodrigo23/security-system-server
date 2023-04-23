@@ -72,7 +72,6 @@ class FramesReceiver(Thread):
                 frame_data = self.data[:msg_size]
                 self.data = self.data[msg_size:]
                 frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
-                # print('llega aqui')
                 return cv2.imdecode(frame, cv2.IMREAD_COLOR)
             else:
                 print("Returning none")

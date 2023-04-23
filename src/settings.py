@@ -74,3 +74,19 @@ def get_imagekit_public_key():
 
 def get_imagekit_url_endpoint():
     return parser.get('imagekit', 'url_endpoint')
+
+def set_stream_enabled(enabled:bool) -> None:
+    parser.set('stream', 'enabled', enabled)
+    # return parser.getboolean('stream', 'enabled')
+
+def set_fire_detector_status(enabled:bool) -> None:
+    parser.set('detectors', 'fire', enabled)
+    # return parser.getboolean('detectors', 'fire')
+
+def set_motion_detector_status(enabled:bool )-> None:
+    parser.set('detectors', 'motion', enabled)
+    # return parser.getboolean('detectors', 'motion')
+
+def set_people_detector_status(enabled:bool) -> None:
+    parser.set('detectors', 'people', enabled)
+    # return parser.getboolean('detectors', 'people')

@@ -23,7 +23,7 @@ class TCPServer:
     """
     Server to manage socket connections
     """
-    def __init__(self):
+    def __init__(self, server_mode:str):
         """
         Method to init a TCPServer class from host and port.
         """ 
@@ -31,6 +31,29 @@ class TCPServer:
         self.tcp_server_running = True
         self.connections        = {}    # to store every Connection object
         self.id_cameras         = set() # id cameras
+        self.define_server_mode(server_mode)
+    
+    def define_server_mode(self, actual_mode:str)-> None:
+        mode = actual_mode.lower()
+        if mode =="f":
+            s.set_fire_detector_status(enabled=True)
+
+            s.set_motion_detector_status(enabled=False)
+            s.set_people_detector_status(enabled=False)
+            s.set_stream_enabled(enabled=False)
+        elif mode == "m":
+            s.set_motion_detector_status(enabled=True)
+
+            s.set_fire_detector_status(enabled=False)
+            s.set_people_detector_status(enabled=False)
+            s.set_stream_enabled(enabled=False)
+
+        elif mode == "p":
+            s.set_people_detector_status(enabled=True)
+
+            s.set_motion_detector_status(enabled=False)
+            s.set_fire_detector_status(enabled=False)
+            s.set_stream_enabled(enabled=False)
         
     def prepare_server(self):
         """

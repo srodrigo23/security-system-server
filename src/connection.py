@@ -78,24 +78,20 @@ class Connection(Thread):
         """
         Method to start detectors by config
         """
-        if status_fire_detector :
-            # start_new_thread(
-            #     fire_detector.detector,
-            #     (self,)
-            # )
-            thread = Thread(target=fire_detector.detector, args=(self,))
-            thread.start()
-        if status_motion_detector :
-            thread = Thread(target=motion_detector.detector, args=(self,))
-            thread.start()
-            # start_new_thread(motion_detector.detector,(self,))
-        if status_people_detector :
-            thread = Thread(target=people_detector.detector, args=(self,))
-            thread.start()
-            # start_new_thread(
-            #     people_detector.detector,
-            #     (self,)
-            # )
+        if status_fire_detector:
+            fire_thread = Thread(target=fire_detector.detector, args=(self,))
+            fire_thread.start()
+            # fire_thread.join()
+
+        if status_motion_detector:
+            motion_thread = Thread(target=motion_detector.detector, args=(self,))
+            motion_thread.start()
+            # motion_thread.join()
+            
+        if status_people_detector:
+            people_thread = Thread(target=people_detector.detector, args=(self,))
+            people_thread.start()
+            # people_thread.join()
             
     def init_new_connection(self, cam_id:str) -> None:
         """
@@ -164,6 +160,8 @@ class Connection(Thread):
                     _vb_ = False
                 time.sleep(0.1)
                 frame = frame_receiver_thread.get_frame()
+                cont =cont+1
+                print(f'sigo recibiendo {cont}')
                 if frame is not None:
                     cont=cont+1
                     # print(frame)
@@ -173,7 +171,6 @@ class Connection(Thread):
                     )
                     self.make_notification(paths=paths_to_detections)
                 else:
-                    # print('paro!!')
                     self.stop_connection()
             except KeyboardInterrupt:
                 self.stop_connection()
@@ -190,12 +187,24 @@ class Connection(Thread):
             'time_connection': get_time(),#self.time_info[0],
             'date_connection': get_date(),#self.time_info[1]
         }
-        mail_controller.send_mail_camera_event_connection(
-            camera_info=camera_info,
-            status=running,
-            link=self.stream_link,
-            other_cams=self.server.get_connections_info(actual_cam_id=cam_id)
+
+        notif_thread = Thread(
+            target=mail_controller.send_mail_camera_event_connection,
+            args=(
+                camera_info,
+                running,
+                self.stream_link,
+                self.server.get_connections_info(actual_cam_id=cam_id)
+            )
         )
+        notif_thread.start()
+        # notif_thread.join()
+        # mail_controller.send_mail_camera_event_connection(
+        #     camera_info=camera_info,
+        #     status=running,
+        #     link=self.stream_link,
+        #     other_cams=self.server.get_connections_info(actual_cam_id=cam_id)
+        # )
         print_log(
             'i',
             f"{'Mail Sended : Connected camera'if running else'Mail Sended : Disconnected camera'}"
@@ -311,7 +320,10 @@ class Connection(Thread):
         len_detections = len(self.fire_detections)
         if len_detections >= 10:
             to_save = self.fire_detections[0::int(len_detections/5)]
-            self.fire_detections = []
+            self.fire_detections = []            
+            print(f"fire detections: {len(self.fire_detections)}")
+
+
             url_detections = self.save_detections(
                 detections=to_save,
                 folder_path=path_to_detections
@@ -366,7 +378,7 @@ class Connection(Thread):
         event = 'motion'
         len_detections = len(self.motion_detections)
         if len_detections >= 10:
-            to_save = self.motion_detections[0::int(len_detections/5)]
+            to_save = self.motion_detections#[0::int(len_detections/5)]
             self.motion_detections = []
             url_detections = self.save_detections(
                 detections=to_save,
