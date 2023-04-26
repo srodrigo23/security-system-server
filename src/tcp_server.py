@@ -4,14 +4,15 @@ Code to run a server to manage socket connections
 import socket as skt
 import uuid
 import settings as s
+import random
 
 from util.logger import print_log
 from connection import Connection
 # from util.date import get_date
 # from util.date import get_time
 HOST = s.get_host()
-PORT = int(s.get_port())
-
+# PORT = int(s.get_port())
+PORT = random.randint(49152, 65535)
 
 NUMBER_CONNECTIONS = 10
 
@@ -112,6 +113,7 @@ class TCPServer:
             except KeyboardInterrupt:
                 self.tcp_server_running = False
                 self.stop_all_connections()
+                self.close_detectors()
                 print_log('i', "Server turned-off from keyboard")
     
     def reg_connections(self, id_camera):
@@ -120,6 +122,14 @@ class TCPServer:
         """
         self.id_cameras.add(id_camera)
 
+    def close_detectors(self)->None:
+        """To reg turned off detectors"""
+        
+        s.set_fire_detector_status(enabled="false")
+        s.set_motion_detector_status(enabled="false")
+        s.set_people_detector_status(enabled="false")
+        s.set_stream_enabled(enabled="false")
+        
     def is_connected(self, id_camera):
         """
         Check if id_camera is already in actual connections.
@@ -135,8 +145,11 @@ class TCPServer:
         Stop all connections that have been created.
         """
         for connection in self.connections.values():
+
             if connection.running:
+                connection.join()
                 connection.stop_connection()
+                # print(connection)
         print_log('i', "Stop all running connections")
     
     def print_number_of_connections(self):
