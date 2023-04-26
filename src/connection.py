@@ -42,7 +42,7 @@ class Connection(Thread):
         self.addr       = address
         self.running    = True
         self.server     = tcp_server #reference
-        # self.time_info  = time_info
+        self.time_info  = (get_time(),get_date())
         # self.stream_link = None if stream_enabled is False else f"http://127.0.0.1:5000/{cam_id}/stream/index.m3u8"
         self.stream_link = None
         self.cam_id = None
@@ -186,8 +186,8 @@ class Connection(Thread):
         """
         camera_info={
             'id': cam_id,
-            'time_connection': get_time(),#self.time_info[0],
-            'date_connection': get_date(),#self.time_info[1]
+            'time_connection': self.time_info[0],#get_time()
+            'date_connection': self.time_info[1]#get_date(),
         }
 
         notif_thread = Thread(
@@ -232,6 +232,7 @@ class Connection(Thread):
             self.stream_thread.stop_stream()
         self.server.delete_id_camera(self.cam_id)
         self.server.print_number_of_connections()
+        # self.join()
     
     def store_frame(self, frame, date_time):
         """
@@ -323,7 +324,7 @@ class Connection(Thread):
         if len_detections >= 10:
             to_save = self.fire_detections[0::int(len_detections/5)]
             self.fire_detections = []            
-            print(f"fire detections: {len(self.fire_detections)}")
+            # print(f"fire detections: {len(self.fire_detections)}")
 
 
             url_detections = self.save_detections(
