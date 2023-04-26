@@ -21,23 +21,23 @@ def send_message_event_camera_connection(camera_info:dict, status:bool, link:boo
             )
         )
 
-def send_message_event_detection(type_detection:str, media_url:str)->None:
+def send_message_event_detection(type_detection:str, media_url:str, cam_id:str)->None:
     from .message_templates import fire_detection
     from .message_templates import motion_detection
     from .message_templates import human_detection
 
     if type_detection == "fire":
         send_media_message(
-            message_body=fire_detection,
+            message_body=fire_detection(cam_id=cam_id),
             media_url=media_url
         )
     elif type_detection == "motion":
         send_media_message(
-            message_body=motion_detection, 
+            message_body=motion_detection(cam_id=cam_id),
             media_url=media_url
         )
     else:
         send_media_message(
-            message_body=human_detection, 
+            message_body=human_detection(cam_id=cam_id),
             media_url=media_url
         )

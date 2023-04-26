@@ -310,10 +310,12 @@ class Connection(Thread):
         )
 
     def send_whatsapp_event_notif(self, url_list:list, event:str)->None:
+        print(f'how many links do you have to send??? {len(url_list)}')
         for url in url_list:
             whatsapp_controller.send_message_event_detection(
                 type_detection=event,
-                media_url=url
+                media_url=url,
+                cam_id=self.cam_id
             )
 
     def make_fire_detection(self, path_to_detections:str) -> None:
@@ -382,7 +384,7 @@ class Connection(Thread):
         event = 'motion'
         len_detections = len(self.motion_detections)
         if len_detections >= 10:
-            to_save = self.motion_detections#[0::int(len_detections/5)]
+            to_save = self.motion_detections[int(len_detections/2)]
             self.motion_detections = []
             url_detections = self.save_detections(
                 detections=to_save,

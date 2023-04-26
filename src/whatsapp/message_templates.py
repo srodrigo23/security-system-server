@@ -15,6 +15,6 @@ camera_disconnected = lambda cam_id, time, date, : f"""
     Fecha de desconexión : {date}
 """ 
 
-fire_detection = "🔥🔥 Se ha detectado fuego.🔥🔥"
-motion_detection = "⬅️⬅️ Se ha detectado movimiento.⬅️⬅️"
-human_detection = "🚶🏻‍♂️🚶🏻‍♂️ Se ha detectado silueta humana.🚶🏻‍♂️🚶🏻‍♂️"
+fire_detection = lambda cam_id : f"🔥🔥 Se ha detectado fuego en la cámara {cam_id}.🔥🔥"
+motion_detection = lambda cam_id : f"⬅️⬅️ Se ha detectado movimiento en la cámara {cam_id}.⬅️⬅️"
+human_detection = lambda cam_id : f"🚶🏻‍♂️🚶🏻‍♂️ Se ha detectado silueta humana en la cámara {cam_id}.🚶🏻‍♂️🚶🏻‍♂️"
