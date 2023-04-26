@@ -156,17 +156,19 @@ class TCPServer:
         """
         Method to print logging number of connections.
         """
-        cont=0
-        for connection in self.connections.values():
-            if connection.running:
-                cont = cont + 1
-        print_log('i', f'Number of Connections : {cont}')
+        # cont=0
+        # for connection in self.connections.values():
+        #     # if connection.running:
+        #     cont = cont + 1
+        print_log('i', f'Number of Connections : {len(self.connections)}')
 
-    def delete_id_camera(self, id_camera):
+    def delete_id_camera(self,id_camera:str, uuid_camera:str):
         """
         Method to delete id camera connection.
         """
         if id_camera in self.id_cameras:
+            # self.connections[uuid_camera].join() #kill thread
+            self.connections.pop(uuid_camera, None)
             self.id_cameras.remove(id_camera)
     
     def get_connections_info(self, actual_cam_id:str)->list:

@@ -230,7 +230,8 @@ class Connection(Thread):
         print_log('i', "Connection Closed")
         if self.stream_enabled:
             self.stream_thread.stop_stream()
-        self.server.delete_id_camera(self.cam_id)
+
+        self.server.delete_id_camera(id_camera=self.cam_id, uuid_camera=self.uuid)
         self.server.print_number_of_connections()
         # self.join()
     
