@@ -1,3 +1,4 @@
+
 from .whatsapp_sender import send_textual_message, send_media_message
 
 def send_message_event_camera_connection(camera_info:dict, status:bool, link:bool)->None:

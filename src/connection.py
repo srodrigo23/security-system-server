@@ -65,7 +65,7 @@ class Connection(Thread):
 
         self.fire_detector_thread = None
         self.motion_detector_thread = None
-        self.people_detection_queue = None
+        self.people_detector_thread = None
         
     def start_stream(self, cam_id, path_folder_to_stream) -> None:
         """
@@ -147,6 +147,7 @@ class Connection(Thread):
             #     cam_id=cam_id,
             #     running=self.running
             # )
+            self.stop_detectors()
             delete_dir(paths[4])
         else:
             self.connector.send(b'ID Camera repeated.')
@@ -159,23 +160,23 @@ class Connection(Thread):
         """
         _vb_ = True
         while self.running:
-            try:
-                if _vb_:
-                    time.sleep(0.25)
-                    _vb_ = False
-                time.sleep(0.1)
-                frame = frame_receiver_thread.get_frame()
-                if frame is not None:
-                    self.store_frame(
-                        frame=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
-                        date_time=get_current_time_string()
-                    )
-                    self.make_notification(paths=paths_to_detections)
-                else:
-                    self.stop_connection()
-            except KeyboardInterrupt:
+            # try:
+            if _vb_:
+                time.sleep(0.25)
+                _vb_ = False
+            time.sleep(0.1)
+            frame = frame_receiver_thread.get_frame()
+            if frame is not None:
+                self.store_frame(
+                    frame=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
+                    date_time=get_current_time_string()
+                )
+                self.make_notification(paths=paths_to_detections)
+            else:
                 self.stop_connection()
-                print_log('i', "Connection Closed")
+            # except KeyboardInterrupt:
+            #     self.stop_connection()
+            #     print_log('i', "Connection Closed")
 
         frame_receiver_thread.stop_connection()
 
@@ -229,7 +230,7 @@ class Connection(Thread):
         Method to stop connection
         """
         self.running = False
-        print_log('i', "Connection Closed")
+        print_log('i', "Connection Closed")       
         if self.stream_enabled:
             self.stream_thread.stop_stream()
         self.server.delete_id_camera(
@@ -248,7 +249,7 @@ class Connection(Thread):
             self.people_detector_thread.stop()
         if self.fire_detector_thread is not None:
             self.fire_detector_thread.stop()
-    
+
     def store_frame(self, frame, date_time):
         """
         Method to store frames in queue

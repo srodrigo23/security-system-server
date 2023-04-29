@@ -1,4 +1,5 @@
 
+
 new_camera_connected = lambda cam_id, time, date, link: f"""
     📹⚡️⚡️🔌 Se conectó una cámara 🔌⚡️⚡️📹
     ID de Cámara : {cam_id}

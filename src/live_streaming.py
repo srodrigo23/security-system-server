@@ -1,6 +1,10 @@
 """
-Method to stream video with StreamGear lib.
+Author  : Sergio Rodrigo Cardenas Rivera
+Email   : rodrigosergio93@gmail.com
+Version : 1.0
+GitHub  : @srodrigo23
 """
+
 from threading import Thread
 import time
 from vidgear.gears import StreamGear

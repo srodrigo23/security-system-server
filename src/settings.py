@@ -1,6 +1,10 @@
 """
-Methods to get config values
+Author  : Sergio Rodrigo Cardenas Rivera
+Email   : rodrigosergio93@gmail.com
+Version : 1.0
+GitHub  : @srodrigo23
 """
+
 from configparser import ConfigParser
 
 parser = ConfigParser()

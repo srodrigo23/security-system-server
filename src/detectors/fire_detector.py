@@ -57,6 +57,12 @@ class FireDetector(Thread):
                     print_log('i', f"Fire detected: { self.connection.cam_id }")
                     self.connection.fire_detections.append((frame, label))
         print_log('i', f"Finishing fire detection on camera: { self.connection.cam_id }")
+    
+    def stop(self) -> None:
+        """
+        Stop fire detector thread
+        """
+        self.running = False
         
 
 # def detector(connection):

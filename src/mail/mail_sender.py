@@ -1,15 +1,15 @@
 """
-sumary_line
+Author  : Sergio Rodrigo Cardenas Rivera
+Email   : rodrigosergio93@gmail.com
+Version : 1.0
+GitHub  : @srodrigo23
 """
+
 from os.path import basename
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
-# from email.mime.application import MIMEApplication
-# from email.mime.base import MIMEBase
-
 import smtplib
-# import ssl
 import settings as s
 
 SUBJECT       = "Live Eye Smart Report"
@@ -19,7 +19,7 @@ sender_mail   = s.get_sender_mail()
 password      = s.get_pass_sender()
 receiver_mail = s.get_receiver_mail()
 
-def send_mail(mail_body : str, attachments=None):
+def send_mail(mail_body : str, attachments=None) -> None:
     """
     sumary_line
     """
@@ -30,7 +30,7 @@ def send_mail(mail_body : str, attachments=None):
         attachments=attachments
     )
     mail_sender.send_mail(mail.as_string())
-    
+
 class MailSender:
     """
     sumary_line

@@ -32,6 +32,7 @@ class PeopleDetector(Thread):
         )
         print_log('i', f"People detection on camera: { self.connection.cam_id }")
         time.sleep(2)
+        self.running = True
         while self.running:
             time.sleep(0.1)
             frame, label = self.connection.get_frame(objetive='people_detector')
