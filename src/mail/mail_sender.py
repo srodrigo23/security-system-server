@@ -83,7 +83,7 @@ class MailSender:
                 message
             )
         except Exception as error:
-            print(error)
+            print("Error sending mail...", error)
         finally:
             self.server.quit()
             
