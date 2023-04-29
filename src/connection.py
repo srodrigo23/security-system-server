@@ -1,8 +1,11 @@
 """
-Thread Class to define a new connection
+Author  : Sergio Rodrigo Cardenas Rivera
+Email   : rodrigosergio93@gmail.com
+Version : 1.0
+GitHub  : @srodrigo23
 """
+
 from threading import Thread
-from _thread import start_new_thread
 from queue import Queue
 
 import time
@@ -10,12 +13,9 @@ import copy
 import cv2
 import settings as s
 
-from detectors import fire_detector
-from detectors import people_detector
-from detectors import motion_detector
-
 from live_streaming import LiveStreaming
 from frames_receiver import FramesReceiver
+
 from mail import mail_controller
 from whatsapp import whatsapp_controller
 
@@ -30,6 +30,9 @@ from folder_methods import create_media_dir_tree_to_new_connection
 from folder_methods import make_file_detection_name
 from storage.imagekit.store import upload_file
 
+from detectors.motion_detector import MotionDetector
+from detectors.fire_detector import FireDetector
+from detectors.people_detector import PeopleDetector
 
 class Connection(Thread):
     """
@@ -44,6 +47,7 @@ class Connection(Thread):
         self.server     = tcp_server #reference
         self.time_info  = (get_time(),get_date())
         # self.stream_link = None if stream_enabled is False else f"http://127.0.0.1:5000/{cam_id}/stream/index.m3u8"
+        
         self.stream_link = None
         self.cam_id = None
         self.stream_thread = None
@@ -55,6 +59,13 @@ class Connection(Thread):
 
         self.define_storage_frames()
         self.define_storage_detections()
+
+        self.thread_to_send_mail = None
+        self.thread_to_send_whatsapp = None
+
+        self.fire_detector_thread = None
+        self.motion_detector_thread = None
+        self.people_detection_queue = None
         
     def start_stream(self, cam_id, path_folder_to_stream) -> None:
         """
@@ -72,28 +83,21 @@ class Connection(Thread):
             self.stream_link = f"http://127.0.0.1:5000/{cam_id}/stream/index.m3u8"
         return live_streaming
     
-    def start_detectors(self,
-        # path_fire_detections:str,
-        # path_motion_detections: str,
-        # path_people_detections: str
-        ) -> None:
+    def start_detectors(self) -> None:
         """
         Method to start detectors by config
         """
         if self.status_fire_detector:
-            fire_thread = Thread(target=fire_detector.detector, args=(self,))
-            fire_thread.start()
-            # fire_thread.join()
+            self.fire_detector_thread = FireDetector(connection=self)
+            self.fire_detector_thread.start()
 
         if self.status_motion_detector:
-            motion_thread = Thread(target=motion_detector.detector, args=(self,))
-            motion_thread.start()
-            # motion_thread.join()
+            self.motion_detector_thread = MotionDetector(connection=self)
+            self.motion_detector_thread.start()
             
         if self.status_people_detector:
-            people_thread = Thread(target=people_detector.detector, args=(self,))
-            people_thread.start()
-            # people_thread.join()
+            self.people_detector_thread = PeopleDetector(connection=self)
+            self.people_detector_thread.start()
             
     def init_new_connection(self, cam_id:str) -> None:
         """
@@ -131,18 +135,18 @@ class Connection(Thread):
                 path_folder_to_stream=path_to_stream
             )
             self.start_detectors()
-            self.send_notif_connection( #connected
-                cam_id=cam_id,
-                running=self.running
-            )
+            # self.send_notif_connection( #connected
+            #     cam_id=cam_id,
+            #     running=self.running
+            # )
             self.loop_process(
                 frame_receiver_thread=frame_receiver,
                 paths_to_detections=paths
             )
-            self.send_notif_connection( #disconnected
-                cam_id=cam_id,
-                running=self.running
-            )
+            # self.send_notif_connection( #disconnected
+            #     cam_id=cam_id,
+            #     running=self.running
+            # )
             delete_dir(paths[4])
         else:
             self.connector.send(b'ID Camera repeated.')
@@ -153,7 +157,6 @@ class Connection(Thread):
         """
         Core method to receive frames and stream and detections
         """
-        cont =0
         _vb_ = True
         while self.running:
             try:
@@ -162,11 +165,7 @@ class Connection(Thread):
                     _vb_ = False
                 time.sleep(0.1)
                 frame = frame_receiver_thread.get_frame()
-                cont =cont+1
-                # print(f'sigo recibiendo {cont}')
                 if frame is not None:
-                    cont=cont+1
-                    # print(frame)
                     self.store_frame(
                         frame=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
                         date_time=get_current_time_string()
@@ -177,6 +176,9 @@ class Connection(Thread):
             except KeyboardInterrupt:
                 self.stop_connection()
                 print_log('i', "Connection Closed")
+
+        frame_receiver_thread.stop_connection()
+
         if self.stream_enabled:
             self.stream_thread.stop_stream()
     
@@ -230,10 +232,22 @@ class Connection(Thread):
         print_log('i', "Connection Closed")
         if self.stream_enabled:
             self.stream_thread.stop_stream()
-
-        self.server.delete_id_camera(id_camera=self.cam_id, uuid_camera=self.uuid)
+        self.server.delete_id_camera(
+            id_camera=self.cam_id,
+            uuid_camera=self.uuid
+        )
         self.server.print_number_of_connections()
-        # self.join()
+    
+    def stop_detectors(self) -> None:
+        """
+        Method to stop  detectors
+        """
+        if self.motion_detector_thread is not None:
+            self.motion_detector_thread.stop()
+        if self.people_detector_thread is not None:
+            self.people_detector_thread.stop()
+        if self.fire_detector_thread is not None:
+            self.fire_detector_thread.stop()
     
     def store_frame(self, frame, date_time):
         """
@@ -294,10 +308,7 @@ class Connection(Thread):
         if self.status_motion_detector:
             self.motion_detections = []
 
-    def send_event_notif(self,
-        folder_captures_name:str,
-        detection_name:str,
-        event_info:dict)->None:
+    def send_event_notif(self, folder_captures_name:str, detection_name:str,event_info:dict)->None:
         """
         Send mail notification with captures,
         """
@@ -310,7 +321,6 @@ class Connection(Thread):
         )
 
     def send_whatsapp_event_notif(self, url_list:list, event:str)->None:
-        print(f'how many links do you have to send??? {len(url_list)}')
         for url in url_list:
             whatsapp_controller.send_message_event_detection(
                 type_detection=event,
@@ -326,9 +336,8 @@ class Connection(Thread):
         len_detections = len(self.fire_detections)
         if len_detections >= 10:
             to_save = self.fire_detections[0::int(len_detections/5)]
-            self.fire_detections = []            
+            # self.fire_detections = []
             # print(f"fire detections: {len(self.fire_detections)}")
-
 
             url_detections = self.save_detections(
                 detections=to_save,
@@ -358,52 +367,74 @@ class Connection(Thread):
         len_detections = len(self.people_detections)
         if len_detections >= 10:
             to_save = self.people_detections[0::int(len_detections/5)]
+            
             self.people_detections = []
-            url_detections = self.save_detections(
-                detections=to_save,
-                folder_path=path_to_detections)
-            self.send_event_notif(
-                folder_captures_name=path_to_detections,
-                detection_name=event,
-                event_info={
-                    'id': self.cam_id,
-                    'time_detection': get_time(),
-                    'date_detection': get_date(),
-                    'link': self.stream_link
-                }
-            )
-            self.send_whatsapp_event_notif(
-                event="people",
-                url_list=url_detections
-            )
+            
+            # url_detections = self.save_detections(
+            #     detections=to_save,
+            #     folder_path=path_to_detections)
+            
+            # self.send_event_notif(
+            #     folder_captures_name=path_to_detections,
+            #     detection_name=event,
+            #     event_info={
+            #         'id': self.cam_id,
+            #         'time_detection': get_time(),
+            #         'date_detection': get_date(),
+            #         'link': self.stream_link
+            #     }
+            # )
+            # self.send_whatsapp_event_notif(
+            #     event="people",
+            #     url_list=url_detections
+            # )
     
     def make_motion_detection(self, path_to_detections: str) -> None:
         """
         Store motion detection
         """
         event = 'motion'
-        len_detections = len(self.motion_detections)
-        if len_detections >= 10:
-            to_save = self.motion_detections[int(len_detections/2)]
-            self.motion_detections = []
+        
+        if len(self.motion_detections) == 30:
+
+            to_save = self.motion_detections[0::int(len(self.motion_detections)/3)] # only three picture
+
             url_detections = self.save_detections(
                 detections=to_save,
-                folder_path=path_to_detections)
-            self.send_event_notif(
-                folder_captures_name=path_to_detections,
-                detection_name=event,
-                event_info={
-                    'id': self.cam_id,
-                    'time_detection': get_time(),
-                    'date_detection': get_date(),
-                    'link': self.stream_link
-                }
+                folder_path=path_to_detections
             )
-            # self.people_detections = []
-            self.send_whatsapp_event_notif(
-                event="motion",
-                url_list=url_detections
-            )
+
+            # self.thread_to_send_mail = Thread(
+            #     target=self.send_event_notif,
+            #     args=(
+            #         path_to_detections,
+            #         event,
+            #         {
+            #             'id': self.cam_id,
+            #             'time_detection': get_time(),
+            #             'date_detection': get_date(),
+            #             'link': self.stream_link
+            #         }
+            #     )
+            # )
+            # self.thread_to_send_mail.start()
+
+            # self.send_event_notif(
+            #     folder_captures_name=path_to_detections,
+            #     detection_name=event,
+            #     event_info={
+            #         'id': self.cam_id,
+            #         'time_detection': get_time(),
+            #         'date_detection': get_date(),
+            #         'link': self.stream_link
+            #     }
+            # )
+            # self.thread_to_send_whatsapp = Thread(
+            #     target=self.send_whatsapp_event_notif,
+            #     args=(url_detections, event)
+            # )
+            # self.thread_to_send_whatsapp.start()
+            # self.motion_detections = []
         
     def get_frame(self, objetive='stream'):
         """
@@ -445,19 +476,27 @@ class Connection(Thread):
         """
         Make detection picture and save on directory
         """
-        # import os
         url_detections=[]
         for capture, label in detections:
             file_name = make_file_detection_name(
                 path=folder_path,
                 file_name=label
             )
+            capture = cv2.putText(
+                capture, f"Date: {label}", (20, 20), cv2.FONT_HERSHEY_SIMPLEX,
+                0.6 , (255, 0, 0), 2, cv2.LINE_AA
+            )
+            capture = cv2.putText(
+                capture, f"Cam.: {self.cam_id}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                0.6 , (255, 0, 0), 2, cv2.LINE_AA
+            )
             cv2.imwrite(filename=file_name,img=capture)
             # path_to_file = os.path.join(folder_path, file_name)
             data_image_uploaded = upload_file(
-                image_file=file_name, 
+                image_file=file_name,
                 file_label=label,
                 path_to_upload=folder_path
             )
             url_detections.append(data_image_uploaded['url'])
+        self.motion_detections = []
         return url_detections
