@@ -1,43 +1,98 @@
 """
-Motion detection
+Author  : Sergio Rodrigo Cardenas Rivera
+Email   : rodrigosergio93@gmail.com
+Version : 1.0
+GitHub  : @srodrigo23
 """
+from threading import Thread
 import time
 import cv2
 from util.logger import print_log
 
-def detector(connection):
+class MotionDetector(Thread):
     """
-    Method to motion detection
+    Motion detection thread class 
     """
-    static_back = None
-    print_log('i', f"Motion detection on camera: { connection.cam_id }")
-    time.sleep(2)
-    while connection.running:
-        time.sleep(0.1)
-        frame, label = connection.get_frame(objetive='motion_detector')
-        if frame is not None:
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            gray = cv2.GaussianBlur(gray, (21, 21), 0)
-            if static_back is None:
-                static_back = gray
-                continue
-            diff_frame = cv2.absdiff(static_back, gray)
-            # If change in between static background and current frame is
-            # grather than 30 it will show white color(255)
-            thresh_frame = cv2.threshold(diff_frame, 30, 255, cv2.THRESH_BINARY)[1]
-            thresh_frame = cv2.dilate(thresh_frame, None, iterations=3)
-            # Finding contour of moving object
-            cnts, _ = cv2.findContours(thresh_frame.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            for contour in cnts:
-                if cv2.contourArea(contour) < 1000: continue
-                (x, y, w, h) = cv2.boundingRect(contour)
-                # making green rectangle arround the moving object
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            if len(cnts) > 0:
-                print_log('i', f"Motion detected: { connection.cam_id }")
-                connection.motion_detections.append((frame, label))
 
-    print_log('i', f"Finishing motion detection on camera: { connection.cam_id }")
+    def __init__(self, connection) -> None:
+        Thread.__init__(self)
+        self.running = False
+        self.connection = connection
+        self.objetive = 'motion_detector'
+
+    def run(self) -> None:
+        print_log('i', f"Motion detection on camera: { self.connection.cam_id }")
+        static_back = None
+        time.sleep(2)
+        self.running = True
+        while self.running:
+            time.sleep(0.1)
+            frame, label = self.connection.get_frame(objetive=self.objetive)
+            if frame is not None:
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                gray = cv2.GaussianBlur(gray, (21, 21), 0)
+                if static_back is None:
+                    static_back = gray
+                    continue
+                diff_frame = cv2.absdiff(static_back, gray)
+                # If change in between static background and current frame is
+                # grather than 30 it will show white color(255)
+                thresh_frame = cv2.threshold(diff_frame, 30, 255, cv2.THRESH_BINARY)[1]
+                thresh_frame = cv2.dilate(thresh_frame, None, iterations=3)
+                # Finding contour of moving object
+                cnts, _ = cv2.findContours(thresh_frame.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                for contour in cnts:
+                    if cv2.contourArea(contour) < 1000: continue
+                    (x, y, w, h) = cv2.boundingRect(contour)
+                    # making green rectangle arround the moving object
+                    cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                if len(cnts) > 0:
+                    print_log('i', f"Motion detected: { self.connection.cam_id }")
+                    self.connection.motion_detections.append((frame, label))
+        print_log('i', f"Finishing motion detection on camera: { self.connection.cam_id }")
+    
+    def stop(self) -> None:
+        self.running = False
+    
+
+# def detector(connection):
+#     """
+#     Method to motion detection
+#     """
+#     static_back = None
+#     print_log('i', f"Motion detection on camera: { connection.cam_id }")
+#     time.sleep(2)
+#     while connection.running:
+#         print(connection.running)
+#         time.sleep(0.1)
+
+#         frame, label = connection.get_frame(objetive='motion_detector')
+#         if frame is not None:
+#             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+#             gray = cv2.GaussianBlur(gray, (21, 21), 0)
+#             # print_log('i', f"motion detection on camera: { connection.cam_id }")
+#             if static_back is None:
+#                 static_back = gray
+#                 continue
+#             diff_frame = cv2.absdiff(static_back, gray)
+#             # If change in between static background and current frame is
+#             # grather than 30 it will show white color(255)
+#             thresh_frame = cv2.threshold(diff_frame, 30, 255, cv2.THRESH_BINARY)[1]
+#             thresh_frame = cv2.dilate(thresh_frame, None, iterations=3)
+#             # Finding contour of moving object
+#             cnts, _ = cv2.findContours(thresh_frame.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+#             for contour in cnts:
+#                 if cv2.contourArea(contour) < 1000: continue
+#                 (x, y, w, h) = cv2.boundingRect(contour)
+#                 # making green rectangle arround the moving object
+#                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+#             if len(cnts) > 0:
+#                 print_log('i', f"Motion detected: { connection.cam_id }")
+#                 connection.motion_detections.append((frame, label))
+#         # else:
+#         #     print("getting None")
+    
+#     print_log('i', f"Finishing motion detection on camera: { connection.cam_id }")
 
 # class MotionDetector(Thread):    
 #     def __init__(self, connection):
