@@ -8,8 +8,8 @@ GitHub  : @srodrigo23
 from threading import Thread
 import struct
 import pickle
-import cv2
 import socket as skt
+import cv2
 
 class FramesReceiver(Thread):
     """

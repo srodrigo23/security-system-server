@@ -135,20 +135,20 @@ class Connection(Thread):
                 path_folder_to_stream=path_to_stream
             )
             self.start_detectors()
-            # self.send_notif_connection( #connected
-            #     cam_id=cam_id,
-            #     running=self.running
-            # )
+            self.send_notif_connection( #connected
+                cam_id=cam_id,
+                running=self.running
+            )
             self.loop_process(
                 frame_receiver_thread=frame_receiver,
                 paths_to_detections=paths
             )
-            # self.send_notif_connection( #disconnected
-            #     cam_id=cam_id,
-            #     running=self.running
-            # )
+            self.send_notif_connection( #disconnected
+                cam_id=cam_id,
+                running=self.running
+            )
             self.stop_detectors()
-            delete_dir(paths[4])
+            # delete_dir(paths[4])
         else:
             self.connector.send(b'ID Camera repeated.')
             self.connector.close() #close connection
@@ -203,13 +203,7 @@ class Connection(Thread):
             )
         )
         notif_thread.start()
-        # notif_thread.join()
-        # mail_controller.send_mail_camera_event_connection(
-        #     camera_info=camera_info,
-        #     status=running,
-        #     link=self.stream_link,
-        #     other_cams=self.server.get_connections_info(actual_cam_id=cam_id)
-        # )
+        
         print_log(
             'i',
             f"{'Mail Sended : Connected camera'if running else'Mail Sended : Disconnected camera'}"
@@ -322,6 +316,9 @@ class Connection(Thread):
         )
 
     def send_whatsapp_event_notif(self, url_list:list, event:str)->None:
+        """
+        Method to send many whatsapp messages with media
+        """
         for url in url_list:
             whatsapp_controller.send_message_event_detection(
                 type_detection=event,
@@ -334,16 +331,28 @@ class Connection(Thread):
         Store fire detection
         """
         event='fire'
-        len_detections = len(self.fire_detections)
-        if len_detections >= 10:
-            to_save = self.fire_detections[0::int(len_detections/5)]
-            # self.fire_detections = []
-            # print(f"fire detections: {len(self.fire_detections)}")
-
+        if len(self.fire_detections) == 10:
+            to_save = self.fire_detections[0::int(len(self.fire_detections)/3)]
             url_detections = self.save_detections(
                 detections=to_save,
-                folder_path=path_to_detections
+                folder_path=path_to_detections,
+                action=event
             )
+            self.thread_to_send_mail = Thread(
+                target=self.send_event_notif,
+                args=(
+                    path_to_detections,
+                    event,
+                    {
+                        'id': self.cam_id,
+                        'time_detection': get_time(),
+                        'date_detection': get_date(),
+                        'link': self.stream_link
+                    }
+                )
+            )
+            self.thread_to_send_mail.start()
+
             self.send_event_notif( #mail
                 folder_captures_name=path_to_detections,
                 detection_name=event,
@@ -355,7 +364,7 @@ class Connection(Thread):
                 }
             )
             self.send_whatsapp_event_notif(
-                event="fire",
+                event=event,
                 url_list=url_detections
             )
 
@@ -366,76 +375,63 @@ class Connection(Thread):
         """
         event = 'people'
         len_detections = len(self.people_detections)
-        if len_detections >= 10:
-            to_save = self.people_detections[0::int(len_detections/5)]
-            
-            self.people_detections = []
-            
-            # url_detections = self.save_detections(
-            #     detections=to_save,
-            #     folder_path=path_to_detections)
-            
-            # self.send_event_notif(
-            #     folder_captures_name=path_to_detections,
-            #     detection_name=event,
-            #     event_info={
-            #         'id': self.cam_id,
-            #         'time_detection': get_time(),
-            #         'date_detection': get_date(),
-            #         'link': self.stream_link
-            #     }
-            # )
-            # self.send_whatsapp_event_notif(
-            #     event="people",
-            #     url_list=url_detections
-            # )
+        if len_detections == 10:
+            to_save = self.people_detections[0::int(len_detections/3)]
+            url_detections = self.save_detections(
+                detections=to_save,
+                folder_path=path_to_detections,
+                action=event)
+            self.thread_to_send_mail = Thread(
+                target=self.send_event_notif,
+                args=(
+                    path_to_detections,
+                    event,
+                    {
+                        'id': self.cam_id,
+                        'time_detection': get_time(),
+                        'date_detection': get_date(),
+                        'link': self.stream_link
+                    }
+                )
+            )
+            self.thread_to_send_mail.start()
+            self.thread_to_send_whatsapp = Thread(
+                target=self.send_whatsapp_event_notif,
+                args=(url_detections, event)
+            )
+            self.thread_to_send_whatsapp.start()
     
     def make_motion_detection(self, path_to_detections: str) -> None:
         """
         Store motion detection
         """
         event = 'motion'
-        
         if len(self.motion_detections) == 30:
-
-            to_save = self.motion_detections[0::int(len(self.motion_detections)/3)] # only three picture
-
+            to_save = self.motion_detections[0::int(len(self.motion_detections)/3)]
             url_detections = self.save_detections(
                 detections=to_save,
-                folder_path=path_to_detections
+                folder_path=path_to_detections,
+                action=event
             )
-
-            # self.thread_to_send_mail = Thread(
-            #     target=self.send_event_notif,
-            #     args=(
-            #         path_to_detections,
-            #         event,
-            #         {
-            #             'id': self.cam_id,
-            #             'time_detection': get_time(),
-            #             'date_detection': get_date(),
-            #             'link': self.stream_link
-            #         }
-            #     )
-            # )
-            # self.thread_to_send_mail.start()
-
-            # self.send_event_notif(
-            #     folder_captures_name=path_to_detections,
-            #     detection_name=event,
-            #     event_info={
-            #         'id': self.cam_id,
-            #         'time_detection': get_time(),
-            #         'date_detection': get_date(),
-            #         'link': self.stream_link
-            #     }
-            # )
-            # self.thread_to_send_whatsapp = Thread(
-            #     target=self.send_whatsapp_event_notif,
-            #     args=(url_detections, event)
-            # )
-            # self.thread_to_send_whatsapp.start()
-            # self.motion_detections = []
+            self.thread_to_send_mail = Thread(
+                target=self.send_event_notif,
+                args=(
+                    path_to_detections,
+                    event,
+                    {
+                        'id': self.cam_id,
+                        'time_detection': get_time(),
+                        'date_detection': get_date(),
+                        'link': self.stream_link
+                    }
+                )
+            )
+            self.thread_to_send_mail.start()
+            self.thread_to_send_whatsapp = Thread(
+                target=self.send_whatsapp_event_notif,
+                args=(url_detections, event)
+            )
+            self.thread_to_send_whatsapp.start()
         
     def get_frame(self, objetive='stream'):
         """
@@ -473,7 +469,7 @@ class Connection(Thread):
                 path_to_detections=paths[3]
             )
 
-    def save_detections(self, detections:list, folder_path:str) -> list:
+    def save_detections(self, detections:list, folder_path:str, action:str) -> list:
         """
         Make detection picture and save on directory
         """
@@ -499,5 +495,7 @@ class Connection(Thread):
                 path_to_upload=folder_path
             )
             url_detections.append(data_image_uploaded['url'])
+        
         self.motion_detections = []
+
         return url_detections
